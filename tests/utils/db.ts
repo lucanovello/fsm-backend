@@ -1,138 +1,78 @@
+// tests/utils/db.ts
+import { prisma } from "../../src/lib/prisma";
+
 /**
- * Test utility helpers for preparing the Postgres database.
+ * Raw DATABASE_URL from the environment.
+ * In tests, this should come from .env.test via dotenv.
  */
-import { execFile } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
+const dbUrl = process.env.DATABASE_URL;
 
-import { PrismaClient } from "@prisma/client";
-
-import { prisma } from "../../src/lib/prisma.js";
-
-const execFileAsync = promisify(execFile);
-
-let ensureDbPromise: Promise<void> | null = null;
-let resetQueue: Promise<void> = Promise.resolve();
-
-const prismaCliPath = fileURLToPath(
-  new URL("../../node_modules/prisma/build/index.js", import.meta.url)
-);
-
-const runPrismaCommand = async (args: string[], env: NodeJS.ProcessEnv) => {
-  await execFileAsync(process.execPath, [prismaCliPath, ...args], {
-    env,
-    maxBuffer: 10 * 1024 * 1024,
-  });
-};
-
-const getAdminClient = (dbUrl: string): PrismaClient => {
-  const adminUrl = new URL(dbUrl);
-  adminUrl.pathname = "/postgres";
-  return new PrismaClient({ datasources: { db: { url: adminUrl.toString() } } });
-};
-
-const databaseExists = async (admin: PrismaClient, name: string): Promise<boolean> => {
-  const rows = (await admin.$queryRaw<
-    Array<{ exists: boolean }>
-  >`SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = ${name}) AS "exists";`) ?? [];
-  return rows[0]?.exists === true;
-};
-
-const createDatabase = async (admin: PrismaClient, name: string) => {
-  await admin.$executeRawUnsafe(`CREATE DATABASE "${name}"`);
-};
-
-const terminateConnections = (admin: PrismaClient, name: string) =>
-  admin.$executeRawUnsafe(`
-    SELECT pg_terminate_backend(pid)
-    FROM pg_stat_activity
-    WHERE datname = ${name} AND pid <> pg_backend_pid();
-  `);
-
-const dropDatabase = async (admin: PrismaClient, name: string) => {
-  if (await databaseExists(admin, name)) {
-    await terminateConnections(admin, name);
-    await admin.$executeRawUnsafe(`DROP DATABASE "${name}"`);
-  }
-};
-
-const shouldRetryMigrate = (err: unknown): boolean => {
-  const message = err instanceof Error ? err.message : String(err);
-  return /P3009|P3018|failed migrations/i.test(message);
-};
-
-async function ensureDatabase(): Promise<void> {
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    throw new Error("DATABASE_URL is not set; cannot prepare test database");
-  }
-
-  const url = new URL(dbUrl);
-  const dbName = url.pathname.replace(/^\//, "");
-  if (!dbName) {
-    throw new Error("DATABASE_URL is missing a database name");
-  }
-
-  const admin = getAdminClient(dbUrl);
-  try {
-    if (!(await databaseExists(admin, dbName))) {
-      await createDatabase(admin, dbName);
-    }
-  } finally {
-    await admin.$disconnect();
-  }
-
-  const runMigrate = () =>
-    runPrismaCommand(["migrate", "deploy"], {
-      ...process.env,
-      DATABASE_URL: dbUrl,
-    });
-
-  try {
-    await runMigrate();
-  } catch (err) {
-    if (!shouldRetryMigrate(err)) {
-      throw err;
-    }
-
-    const adminRetry = getAdminClient(dbUrl);
-    try {
-      await prisma.$disconnect().catch(() => undefined);
-      await dropDatabase(adminRetry, dbName);
-      await createDatabase(adminRetry, dbName);
-    } finally {
-      await adminRetry.$disconnect();
-    }
-
-    await runMigrate();
-  }
-
-  await prisma.$connect().catch(() => undefined);
-}
-
-async function ensureDatabaseReady(): Promise<void> {
-  if (!ensureDbPromise) {
-    ensureDbPromise = ensureDatabase().catch((err) => {
-      ensureDbPromise = null;
-      throw err;
-    });
-  }
-  return ensureDbPromise;
+if (!dbUrl) {
+  throw new Error("DATABASE_URL is not set. Check your .env.test file.");
 }
 
 /**
- * Truncate known tables and reset identity counters.
- * NOTE: quoted names match Prisma's generated table names.
+ * Expose the DB URL if tests need to inspect it.
  */
-export async function resetDb() {
-  const run = async () => {
-    await ensureDatabaseReady();
-    await prisma.$executeRawUnsafe(
-      'TRUNCATE TABLE "LoginAttempt","PasswordResetToken","VerificationToken","Session","User" RESTART IDENTITY CASCADE;'
-    );
-  };
+export const getDbUrl = (): string => dbUrl;
 
-  const next = resetQueue.then(run, run);
-  resetQueue = next.catch(() => undefined);
-  return next;
-}
+/**
+ * Type alias for the test DB client.
+ * We just reuse the app's Prisma client instead of constructing a new one.
+ */
+export type TestDbClient = typeof prisma;
+
+/**
+ * Historically this was an "admin" client with a different connection string.
+ * For Prisma 7 + adapter, we keep the same shape but just return the shared client.
+ */
+export const getAdminClient = (): TestDbClient => prisma;
+
+/**
+ * Light-touch "ensure database is reachable".
+ * We no longer try to override datasources or create databases here;
+ * Docker / migrations are responsible for that. This just pings the DB.
+ */
+export const ensureDb = async (client: TestDbClient = prisma): Promise<void> => {
+  // A trivial query to confirm connectivity
+  await client.$executeRawUnsafe("SELECT 1;");
+};
+
+let ensured = false;
+
+/**
+ * Idempotent helper used by readiness tests.
+ * Only actually runs the check once per test process.
+ */
+export const ensureDbReady = async (): Promise<void> => {
+  if (ensured) return;
+  await ensureDb();
+  ensured = true;
+};
+
+/**
+ * Helper used by tests that need a clean DB between runs.
+ * Adjust this list if you add/remove models.
+ */
+export const resetDb = async (): Promise<void> => {
+  await prisma.$transaction([
+    prisma.loginAttempt.deleteMany(),
+    prisma.passwordResetToken.deleteMany(),
+    prisma.verificationToken.deleteMany(),
+    prisma.session.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
+};
+
+/**
+ * Optional: close the Prisma connection at the end of the test run.
+ */
+export const closeDb = async (): Promise<void> => {
+  await prisma.$disconnect();
+};
+
+/**
+ * Kick off a one-time DB readiness check when this module is imported
+ * (similar to the old `run()` pattern, but without extra Prisma constructors).
+ */
+void ensureDbReady();
