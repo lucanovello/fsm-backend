@@ -50,16 +50,6 @@ jobs:
         run: npm run secrets:scan
       - name: Dependency vulnerability audit
         run: npm run audit:ci
-      - name: Wait for PostgreSQL
-        run: for i in {1..60}; do
-          if pg_isready -h localhost -p 5432 -U postgres; then
-          echo "PostgreSQL is ready!";
-          break;
-          else
-          echo "Waiting for PostgreSQL...";
-          sleep 1;
-          fi
-          done
       - name: Prisma migrate
         run: npx prisma migrate deploy
       - name: Static checks (types + lint)
@@ -106,8 +96,5 @@ jobs:
           image-ref: fsm-backend:${{ github.sha }}
           severity: HIGH,CRITICAL
           exit-code: "1"
-          # Root manifests list devDependencies that are stripped from the runtime image,
-          # so skip them to avoid false positives while still scanning installed modules.
           skip-files: /app/package.json,/app/package-lock.json
-          # New: tell Trivy to use the ignore file in the repo root
           trivyignores: .trivyignore
