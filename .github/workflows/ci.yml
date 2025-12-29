@@ -98,9 +98,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Docker image for scanning
-        run: docker build \
-          --build-arg DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend_test?schema=public \
-          -t fsm-backend:${{ github.sha }} .
+        run: docker build --build-arg DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend_test?schema=public -t fsm-backend:${{ github.sha }} .
 
       - name: Scan image with Trivy
         uses: aquasecurity/trivy-action@0.33.1
