@@ -20,15 +20,18 @@ RUN npm ci --omit=dev --ignore-scripts
 # Install dev deps for building, then compile
 FROM base AS build
 ENV NODE_ENV=development
+# Dummy DB URL required by Prisma at build time; actual DB URL is injected at runtime
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/starter?schema=public
 COPY package*.json ./
 RUN npm ci --ignore-scripts
 COPY . .
 RUN npx prisma generate && npm run build
 
 # ---- Prune ----
-# Start from prod deps and prune (ensures prod-only)
 FROM base AS prune
 ENV NODE_ENV=production
+# Prisma needs DATABASE_URL even just to generate the client
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/starter?schema=public
 ARG PRISMA_CLI_VERSION
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
@@ -36,7 +39,6 @@ COPY prisma ./prisma
 RUN npm prune --omit=dev \
   && npm install "prisma@${PRISMA_CLI_VERSION}" --no-save \
   && npx prisma generate
-# Keep Prisma CLI (dev dependency) so migrate deploy works at runtime.
 
 # ---- Runtime ----
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS runner
