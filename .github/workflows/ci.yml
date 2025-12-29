@@ -51,15 +51,14 @@ jobs:
       - name: Dependency vulnerability audit
         run: npm run audit:ci
       - name: Wait for PostgreSQL
-        run: |
-          for i in {1..60}; do
-            if pg_isready -h localhost -p 5432 -U postgres; then
-              echo "PostgreSQL is ready!";
-              break;
-            else
-              echo "Waiting for PostgreSQL...";
-              sleep 1;
-            fi
+        run: for i in {1..60}; do
+          if pg_isready -h localhost -p 5432 -U postgres; then
+          echo "PostgreSQL is ready!";
+          break;
+          else
+          echo "Waiting for PostgreSQL...";
+          sleep 1;
+          fi
           done
       - name: Prisma migrate
         run: npx prisma migrate deploy
