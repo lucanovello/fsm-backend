@@ -2,7 +2,7 @@
 ARG NODE_VERSION=20.19.0
 ARG ALPINE_VERSION=3.20
 ARG GCOMPAT_VERSION=1.1.0-r4
-ARG PRISMA_CLI_VERSION=6.17.1
+ARG PRISMA_CLI_VERSION=7.2.0
 
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base
 WORKDIR /app
@@ -21,7 +21,7 @@ RUN npm ci --omit=dev --ignore-scripts
 FROM base AS build
 ENV NODE_ENV=development
 # Dummy DB URL required by Prisma at build time; actual DB URL is injected at runtime
-ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/starter?schema=public
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend?schema=public
 COPY package*.json ./
 RUN npm ci --ignore-scripts
 COPY . .
@@ -31,7 +31,7 @@ RUN npx prisma generate && npm run build
 FROM base AS prune
 ENV NODE_ENV=production
 # Prisma needs DATABASE_URL even just to generate the client
-ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/starter?schema=public
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend?schema=public
 ARG PRISMA_CLI_VERSION
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./

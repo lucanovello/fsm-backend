@@ -1,6 +1,6 @@
 # Ops Runbook
 
-Operational checklist for running this starter template; adapt the commands and variables to your deployment environment.
+Operational checklist for running this FSM backend; adapt the commands and variables to your deployment environment.
 
 ## Service overview
 
@@ -86,7 +86,7 @@ Operational checklist for running this starter template; adapt the commands and 
 
 ## Dashboards & metrics
 
-- **API**: `/metrics` (enable via `METRICS_ENABLED=true`); scrape with Prometheus + Grafana. Starter configs live under `docs/ops/observability` (`prometheus-scrape.yaml` and `grafana-dashboard.json`) and assume either `METRICS_GUARD=cidr` or ingress/NetworkPolicy allowlisting for Prometheus.
+- **API**: `/metrics` (enable via `METRICS_ENABLED=true`); scrape with Prometheus + Grafana. configs live under `docs/ops/observability` (`prometheus-scrape.yaml` and `grafana-dashboard.json`) and assume either `METRICS_GUARD=cidr` or ingress/NetworkPolicy allowlisting for Prometheus.
 - **Database**: pg_stat_activity / connections dashboard (e.g., RDS Performance Insights, Grafana Postgres mixin).
 - **Redis**: Monitor `redis_commands_processed`, `evicted_keys`, memory usage.
 - **Errors & latency**: Centralised logs (Pino JSON) aggregated via ELK/Stackdriver/CloudWatch depending on hosting.
