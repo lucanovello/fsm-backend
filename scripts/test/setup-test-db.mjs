@@ -1,7 +1,6 @@
-// scripts/test/setup-test-db.mjs
 import "dotenv/config";
-import fs from "node:fs";
 import { execSync } from "node:child_process";
+import fs from "node:fs";
 import process from "node:process";
 
 const log = (msg) => console.log(`[test-db] ${msg}`);
