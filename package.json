@@ -1,7 +1,7 @@
 {
   "name": "fsm-backend",
   "version": "1.0.0",
-  "description": "A small, production-style Express + TypeScript starter with Prisma/Postgres, Zod validation, JWT auth (access + rotating refresh), Pino logs, Vitest/Supertest tests, Docker, and GitHub Actions.",
+  "description": "Field Service Management backend application",
   "main": "index.js",
   "type": "module",
   "scripts": {

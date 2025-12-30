@@ -3,7 +3,7 @@ global:
   scrape_timeout: 10s
 
 scrape_configs:
-  - job_name: starter-api
+  - job_name: fsm-backend-api
     honor_labels: true
     metrics_path: /metrics
     scheme: http
@@ -16,7 +16,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__meta_kubernetes_service_name]
         action: keep
-        regex: starter-api
+        regex: fsm-backend-api
       - source_labels: [__meta_kubernetes_endpoint_port_name]
         action: keep
         regex: http
@@ -25,6 +25,6 @@ scrape_configs:
       - source_labels: [__meta_kubernetes_pod_name]
         target_label: pod
       - target_label: job
-        replacement: starter-api
+        replacement: fsm-backend-api
     # If you keep METRICS_GUARD=secret, inject the x-metrics-secret header through an ingress snippet or sidecar proxy
     # that appends the header only for Prometheus traffic.
