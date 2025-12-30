@@ -11,6 +11,7 @@
     "check": "npm run typecheck && npm run lint && npm run secrets:scan && npm run audit:ci && npm run test",
     "check:commit": "npm run typecheck && npm run lint && npm run secrets:scan",
     "check:cov": "npm run typecheck && npm run lint && npm run secrets:scan && npm run test:ci",
+    "db:seed": "prisma db seed",
     "db:test:create": "docker exec -i fsm-backend-db-1 psql -U postgres -c \"CREATE DATABASE IF NOT EXISTS postgres_test;\"",
     "db:test:migrate": "cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres_test?schema=public npx prisma migrate deploy",
     "dev": "tsx watch src/index.ts",
@@ -35,6 +36,9 @@
     "test:ci": "cross-env TEST_ENV_FILE=.env.test npm run test:setup-db && vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "user:set-role": "node scripts/users/set-role.mjs"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "engines": {
     "node": ">=20.19 <21"
