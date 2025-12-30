@@ -21,10 +21,6 @@
 - [ ] `npm test` / `yarn test` / other:
 - [ ] Manual QA (steps):
 
-## Screenshots / Videos (if UI changes)
-
-<!-- Drag-and-drop screenshots or GIFs here. -->
-
 ## Checklist
 
 - [ ] I’ve reviewed my own changes
