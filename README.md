@@ -55,6 +55,81 @@ npm run dev
 # GET http://localhost:3000/health -> {"status":"ok"}
 ```
 
+## Seeding the DB (dev)
+
+This repo includes a Prisma seed script that populates the dev database with sample FSM data:
+
+- admin user + technician user
+- technicians
+- customers + service locations
+- work orders with varied statuses/priorities
+- work notes + line items
+
+### Run seed
+
+1. Start Postgres:
+
+```bash
+docker compose up -d db
+```
+
+2. Apply migrations:
+
+```bash
+npx prisma migrate deploy
+```
+
+3. Seed:
+
+```bash
+npm run db:seed
+```
+
+### Seeded login accounts
+
+- admin@example.com
+- tech@example.com
+
+**Password**:
+
+- defaults to ChangeMe123!
+- override via:
+
+```bash
+SEED_PASSWORD="MyNewDevPass123!" npm run db:seed
+```
+
+Note: The seed script is intended for local dev only and will wipe FSM domain tables before re-inserting sample data.
+
+---
+
+## 4) Verify locally (don’t skip this)
+
+### A) Run it end-to-end
+
+```bash
+docker compose up -d db
+cp .env.example .env
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run db:seed
+```
+
+### B) Inspect quickly with Prisma Studio
+
+```bash
+npx prisma studio
+```
+
+Confirm you see:
+
+- Users
+- Technician linked to the tech user
+- Customers + locations
+- WorkOrders with statuses like DRAFT/SCHEDULED/IN_PROGRESS/COMPLETED
+- Notes + line items linked correctly
+
 **All-in-one compose (API + Postgres + Redis for dev)**
 
 ```bash
