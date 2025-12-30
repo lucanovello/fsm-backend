@@ -11,15 +11,15 @@ model User {
   email               String               @unique
   password            String
   role                Role                 @default(USER)
-  technician          Technician?
   sessions            Session[]
   emailVerifiedAt     DateTime?
   verificationTokens  VerificationToken[]
   passwordResetTokens PasswordResetToken[]
   loginAttempts       LoginAttempt[]
+  technician          Technician?
+  workNotes           WorkNote[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  workNotes           WorkNote[]
 }
 
 model Session {
@@ -82,6 +82,8 @@ enum Role {
   ADMIN
 }
 
+// FSM models
+
 enum WorkOrderStatus {
   DRAFT
   SCHEDULED
@@ -116,12 +118,12 @@ model Customer {
 
 model ServiceLocation {
   id           String      @id @default(cuid())
-  customer     Customer    @relation(fields: [customerId], references: [id])
+  customer     Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId   String
   label        String?
-  addressLine1 String?
+  addressLine1 String
   addressLine2 String?
-  city         String?
+  city         String
   state        String?
   postalCode   String?
   country      String?
@@ -147,11 +149,11 @@ model Technician {
 
 model WorkOrder {
   id                   String              @id @default(cuid())
-  customer             Customer            @relation(fields: [customerId], references: [id])
+  customer             Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId           String
-  serviceLocation      ServiceLocation     @relation(fields: [serviceLocationId], references: [id])
+  serviceLocation      ServiceLocation     @relation(fields: [serviceLocationId], references: [id], onDelete: Cascade)
   serviceLocationId    String
-  assignedTechnician   Technician?         @relation(fields: [assignedTechnicianId], references: [id])
+  assignedTechnician   Technician?         @relation(fields: [assignedTechnicianId], references: [id], onDelete: SetNull)
   assignedTechnicianId String?
   status               WorkOrderStatus     @default(DRAFT)
   priority             WorkOrderPriority   @default(NORMAL)
@@ -161,7 +163,7 @@ model WorkOrder {
   scheduledEnd         DateTime?
   actualStart          DateTime?
   actualEnd            DateTime?
-  workNotes            WorkNote[]
+  notes                WorkNote[]
   lineItems            WorkOrderLineItem[]
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
@@ -175,7 +177,7 @@ model WorkNote {
   id           String    @id @default(cuid())
   workOrder    WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
   workOrderId  String
-  authorUser   User      @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+  author       User      @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
   authorUserId String
   body         String
   createdAt    DateTime  @default(now())
@@ -189,10 +191,9 @@ model WorkOrderLineItem {
   id             String    @id @default(cuid())
   workOrder      WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
   workOrderId    String
-  name           String
-  description    String?
+  description    String
   quantity       Int       @default(1)
-  unitPriceCents Int?
+  unitPriceCents Int
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
