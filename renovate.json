@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Automated dependency updates for starter-express-prisma-jwt",
+  "description": "Automated dependency updates for fsm-backend (Field Service Management backend)",
   "extends": [
     "config:recommended",
     ":dependencyDashboard",
