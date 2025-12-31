@@ -16,7 +16,7 @@ ENV NODE_ENV=production
 ARG GCOMPAT_VERSION
 RUN apk add --no-cache "gcompat=${GCOMPAT_VERSION}"
 COPY package*.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # ---- Build ----
 # Install dev deps for building, then compile
@@ -25,7 +25,7 @@ ENV NODE_ENV=development
 # Dummy DB URL required by Prisma at build time; actual DB URL is injected at runtime
 ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend?schema=public
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 COPY .  .
 RUN npx prisma generate && npm run build
 
