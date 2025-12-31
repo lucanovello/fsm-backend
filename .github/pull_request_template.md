@@ -6,6 +6,8 @@
 
 <!-- e.g. Closes #123, Relates to #456 -->
 
+- Closes #...
+
 ## Changes
 
 <!-- High-level list of changes. Focus on what a reviewer needs to know. -->
@@ -17,12 +19,11 @@
 
 <!-- How did you verify this change? List commands / steps. -->
 
-- [ ] Tests added or updated
-- [ ] `npm test` / `yarn test` / other:
-- [ ] Manual QA (steps):
+- [ ] ...
+- [ ] ...
 
 ## Checklist
 
-- [ ] I’ve reviewed my own changes
-- [ ] I’ve updated documentation / README if needed
-- [ ] No breaking changes, or I’ve described them clearly above
+- [ ] ...
+- [ ] ...
+- [ ] ...

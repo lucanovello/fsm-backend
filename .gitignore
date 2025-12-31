@@ -145,3 +145,4 @@ vite.config.ts.timestamp-*
 /src/build/meta.ts
 /openapi.json
 .gitleaks.report.json
+.vscode/settings.json
