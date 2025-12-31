@@ -73,9 +73,6 @@
     "swagger-ui-express": "^5.0.1",
     "zod": "^4.2.1"
   },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "4.54.0"
-  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@types/compression": "^1.8.1",
