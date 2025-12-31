@@ -1,7 +1,3 @@
-/**
- * App composition (no .listen() here).
- * WHY: Tests import the app directly (Supertest) without opening a TCP port.
- */
 import compression from "compression";
 import express, {
   type Request,
@@ -209,7 +205,6 @@ const echoRequestId: RequestHandler = (req: Request, res: Response, next: NextFu
 };
 app.use(echoRequestId);
 
-// express.json() needs a cast for Express 5 + connect-style types.
 const jsonParser = express.json({ limit: cfg.REQUEST_BODY_LIMIT }) as unknown as RequestHandler;
 app.use(jsonParser);
 

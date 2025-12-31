@@ -19,7 +19,7 @@ async function main() {
   const { scheduleSessionCleanup } = await import("./jobs/sessionCleanup.js");
 
   const server = app.listen(port, () => {
-    logger.info({ port }, "API server listening");
+    logger.info({ port }, `API server listening at http://localhost:${port}`);
   });
   const cfg = getConfig();
   server.keepAliveTimeout = cfg.HTTP_SERVER_KEEPALIVE_TIMEOUT_MS;

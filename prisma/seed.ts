@@ -90,12 +90,12 @@ async function seedUsersAndTechnicians(db: PrismaClient): Promise<SeedUsers> {
   const technician1 = await db.technician.upsert({
     where: { userId: tech1.id },
     update: {
-      displayName: "Taylor Technician",
+      displayName: "John Technician",
       phone: "+1-555-123-4567",
     },
     create: {
       userId: tech1.id,
-      displayName: "Taylor Technician",
+      displayName: "John Technician",
       phone: "+1-555-123-4567",
     },
   });
@@ -103,12 +103,12 @@ async function seedUsersAndTechnicians(db: PrismaClient): Promise<SeedUsers> {
   const technician2 = await db.technician.upsert({
     where: { userId: tech2.id },
     update: {
-      displayName: "Jordan Technician",
+      displayName: "Jane Technician",
       phone: "+1-555-987-6543",
     },
     create: {
       userId: tech2.id,
-      displayName: "Jordan Technician",
+      displayName: "Jane Technician",
       phone: "+1-555-987-6543",
     },
   });

@@ -6,6 +6,8 @@ ARG PRISMA_CLI_VERSION=7.2.0
 
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base
 WORKDIR /app
+# Update npm to fix CVE-2025-64756 and other vulnerabilities
+RUN npm install -g npm@latest
 
 # ---- Deps ----
 # Install prod deps first (cache-friendly layer)
@@ -14,7 +16,7 @@ ENV NODE_ENV=production
 ARG GCOMPAT_VERSION
 RUN apk add --no-cache "gcompat=${GCOMPAT_VERSION}"
 COPY package*.json ./
-RUN npm ci --omit=dev --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # ---- Build ----
 # Install dev deps for building, then compile
@@ -23,15 +25,15 @@ ENV NODE_ENV=development
 # Dummy DB URL required by Prisma at build time; actual DB URL is injected at runtime
 ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend?schema=public
 COPY package*.json ./
-RUN npm ci --ignore-scripts
-COPY . .
+RUN npm install --ignore-scripts
+COPY .  .
 RUN npx prisma generate && npm run build
 
 # ---- Prune ----
 FROM base AS prune
 ENV NODE_ENV=production
 # Prisma needs DATABASE_URL even just to generate the client
-ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend?schema=public
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend? schema=public
 ARG PRISMA_CLI_VERSION
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
@@ -44,6 +46,8 @@ RUN npm prune --omit=dev \
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# Update npm in the final runtime image
+RUN npm install -g npm@latest
 RUN addgroup -S app && adduser -S app -G app
 USER app
 
