@@ -97,4 +97,3 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
           skip-files: /app/package.json,/app/package-lock.json
-          trivyignores: .trivyignore
