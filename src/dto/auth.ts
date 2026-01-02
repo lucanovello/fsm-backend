@@ -5,18 +5,18 @@ const passwordComplexityMessage =
 
 const passwordSchema = z
   .string()
-  .min(8, { message: passwordComplexityMessage })
+  .min(8, { error: passwordComplexityMessage })
   .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/u, {
-    message: passwordComplexityMessage,
+    error: passwordComplexityMessage,
   });
 
 export const RegisterSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: passwordSchema,
 });
 
 export const LoginSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 });
 
@@ -29,7 +29,7 @@ export const VerifyEmailSchema = z.object({
 });
 
 export const RequestPasswordResetSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });
 
 export const ResetPasswordSchema = z.object({

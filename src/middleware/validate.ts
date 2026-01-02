@@ -1,10 +1,10 @@
 import type { RequestHandler } from "express";
-import type { ZodTypeAny } from "zod";
+import type { ZodType } from "zod";
 
 type Schemas = {
-  body?: ZodTypeAny;
-  params?: ZodTypeAny;
-  query?: ZodTypeAny;
+  body?: ZodType<any>;
+  params?: ZodType<any>;
+  query?: ZodType<any>;
 };
 
 /**

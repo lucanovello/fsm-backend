@@ -114,14 +114,14 @@ const EnvSchema = z
       const secret = data.METRICS_GUARD_SECRET?.trim();
       if (!secret) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["METRICS_GUARD_SECRET"],
           message: "METRICS_GUARD_SECRET is required when METRICS_GUARD=secret",
         });
       }
     } else if (data.METRICS_GUARD_SECRET) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["METRICS_GUARD_SECRET"],
         message: "METRICS_GUARD_SECRET provided but METRICS_GUARD is not set to secret",
       });
@@ -131,7 +131,7 @@ const EnvSchema = z
       const allowlist = splitCommaSeparated(data.METRICS_GUARD_ALLOWLIST);
       if (allowlist.length === 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["METRICS_GUARD_ALLOWLIST"],
           message: "Provide at least one CIDR when METRICS_GUARD=cidr",
         });
@@ -141,21 +141,21 @@ const EnvSchema = z
       const invalid = allowlist.filter((cidr) => !validateCidr(cidr));
       if (invalid.length > 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["METRICS_GUARD_ALLOWLIST"],
           message: `Invalid CIDR entries: ${invalid.join(", ")}`,
         });
       }
     } else if (data.METRICS_GUARD_ALLOWLIST) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["METRICS_GUARD_ALLOWLIST"],
         message: "METRICS_GUARD_ALLOWLIST provided but METRICS_GUARD is not set to cidr",
       });
     }
     if (data.RATE_LIMIT_REDIS_URL?.trim() === "") {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["RATE_LIMIT_REDIS_URL"],
         message: "RATE_LIMIT_REDIS_URL cannot be blank",
       });
@@ -165,7 +165,7 @@ const EnvSchema = z
       const metricsEnabled = parseBooleanEnv(data.METRICS_ENABLED);
       if (metricsEnabled && data.METRICS_GUARD === "none") {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["METRICS_GUARD"],
           message: "METRICS_GUARD must be secret or cidr when METRICS_ENABLED=true in production",
         });
@@ -174,7 +174,7 @@ const EnvSchema = z
       const allowlist = splitCommaSeparated(data.CORS_ORIGINS);
       if (allowlist.length === 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["CORS_ORIGINS"],
           message: "Set CORS_ORIGINS with at least one allowed origin in production",
         });
@@ -182,7 +182,7 @@ const EnvSchema = z
       const redisUrl = data.RATE_LIMIT_REDIS_URL?.trim();
       if (!redisUrl) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["RATE_LIMIT_REDIS_URL"],
           message: "RATE_LIMIT_REDIS_URL is required in production",
         });
