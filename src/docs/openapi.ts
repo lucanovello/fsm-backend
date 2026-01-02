@@ -37,7 +37,10 @@ const ErrorSchema = z
     code: z
       .string()
       .optional()
-      .openapi({ example: "UNAUTHORIZED", description: "Machine-readable error code when present." }),
+      .openapi({
+        example: "UNAUTHORIZED",
+        description: "Machine-readable error code when present.",
+      }),
     details: z
       .unknown()
       .optional()
@@ -48,11 +51,9 @@ const ErrorSchema = z
   });
 registry.register("Error", ErrorSchema);
 
-const ErrorResponseSchema = z
-  .object({ error: ErrorSchema })
-  .openapi("ErrorResponse", {
-    description: "Error response envelope shared by all endpoints.",
-  });
+const ErrorResponseSchema = z.object({ error: ErrorSchema }).openapi("ErrorResponse", {
+  description: "Error response envelope shared by all endpoints.",
+});
 registry.register("ErrorResponse", ErrorResponseSchema);
 
 const makeErrorResponse = (
@@ -117,20 +118,16 @@ const userNotFoundResponse = errorResponse("Requested user does not exist", {
   code: "USER_NOT_FOUND",
 });
 
-const StatusOkSchema = z
-  .object({ status: z.literal("ok") })
-  .openapi("StatusOk", {
-    example: { status: "ok" },
-    description: "Simple OK response used by liveness and ping endpoints.",
-  });
+const StatusOkSchema = z.object({ status: z.literal("ok") }).openapi("StatusOk", {
+  example: { status: "ok" },
+  description: "Simple OK response used by liveness and ping endpoints.",
+});
 registry.register("StatusOk", StatusOkSchema);
 
-const ReadySchema = z
-  .object({ status: z.literal("ready") })
-  .openapi("StatusReady", {
-    example: { status: "ready" },
-    description: "Readiness probe response when dependencies are healthy.",
-  });
+const ReadySchema = z.object({ status: z.literal("ready") }).openapi("StatusReady", {
+  example: { status: "ready" },
+  description: "Readiness probe response when dependencies are healthy.",
+});
 registry.register("StatusReady", ReadySchema);
 
 const VersionSchema = z
@@ -152,20 +149,14 @@ registry.register("VersionResponse", VersionSchema);
 
 const TokenPairSchema = z
   .object({
-    accessToken: z
-      .string()
-      .min(20)
-      .openapi({
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.access-token-placeholder",
-        description: "JWT access token to supply in the Authorization header.",
-      }),
-    refreshToken: z
-      .string()
-      .min(20)
-      .openapi({
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh-token-placeholder",
-        description: "Rotating refresh token used to mint new access tokens.",
-      }),
+    accessToken: z.string().min(20).openapi({
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.access-token-placeholder",
+      description: "JWT access token to supply in the Authorization header.",
+    }),
+    refreshToken: z.string().min(20).openapi({
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh-token-placeholder",
+      description: "Rotating refresh token used to mint new access tokens.",
+    }),
   })
   .openapi("TokenPair", {
     description: "Tokens returned after a successful login or refresh.",
@@ -174,13 +165,10 @@ registry.register("TokenPair", TokenPairSchema);
 
 const RegisterResponseSchema = z
   .object({
-    emailVerificationRequired: z
-      .boolean()
-      .openapi({
-        example: false,
-        description:
-          "Indicates whether the user must verify their email before tokens are issued.",
-      }),
+    emailVerificationRequired: z.boolean().openapi({
+      example: false,
+      description: "Indicates whether the user must verify their email before tokens are issued.",
+    }),
     accessToken: TokenPairSchema.shape.accessToken.optional(),
     refreshToken: TokenPairSchema.shape.refreshToken.optional(),
   })
@@ -213,13 +201,11 @@ registry.register("Role", RoleSchema);
 
 const SessionSummarySchema = z
   .object({
-    id: z.string().uuid().openapi({ example: "746b96ac-983d-4b65-96a2-1e727caa0027" }),
-    createdAt: z
-      .string()
+    id: z.uuid().openapi({ example: "746b96ac-983d-4b65-96a2-1e727caa0027" }),
+    createdAt: z.iso
       .datetime()
       .openapi({ example: "2025-01-15T12:34:56.000Z", description: "Session creation timestamp." }),
-    updatedAt: z
-      .string()
+    updatedAt: z.iso
       .datetime()
       .openapi({ example: "2025-01-16T08:12:04.000Z", description: "Last refresh timestamp." }),
     valid: z.boolean().openapi({ example: true }),
@@ -256,8 +242,8 @@ registry.register("SessionsResponse", SessionsResponseSchema);
 
 const UserSummarySchema = z
   .object({
-    id: z.string().uuid().openapi({ example: "0c853481-6d5f-4205-8b51-7c0dcbf1bba1" }),
-    email: z.string().email().openapi({ example: "user@example.com" }),
+    id: z.uuid().openapi({ example: "0c853481-6d5f-4205-8b51-7c0dcbf1bba1" }),
+    email: z.email().openapi({ example: "user@example.com" }),
     role: RoleSchema,
   })
   .openapi("UserSummary", {
@@ -270,21 +256,22 @@ const ProtectedUserResponseSchema = z
     user: UserSummarySchema,
     owner: z
       .boolean()
-      .openapi({ example: true, description: "True when the requester is accessing their own user." }),
+      .openapi({
+        example: true,
+        description: "True when the requester is accessing their own user.",
+      }),
   })
   .openapi("ProtectedUserResponse", {
     description: "Response returned when reading a protected user resource.",
   });
 registry.register("ProtectedUserResponse", ProtectedUserResponseSchema);
 
-const MetricsTextSchema = z
-  .string()
-  .openapi("PrometheusMetrics", {
-    example: `# HELP http_requests_total Total number of HTTP requests
+const MetricsTextSchema = z.string().openapi("PrometheusMetrics", {
+  example: `# HELP http_requests_total Total number of HTTP requests
 # TYPE http_requests_total counter
 http_requests_total{method="GET",route="/health",status_code="200"} 1`,
-    description: "Prometheus exposition format payload.",
-  });
+  description: "Prometheus exposition format payload.",
+});
 registry.register("PrometheusMetrics", MetricsTextSchema);
 
 registry.registerComponent("securitySchemes", "BearerAuth", {
@@ -406,11 +393,21 @@ registry.registerPath({
           examples: {
             missing: {
               summary: "Secret header missing",
-              value: { error: { message: "Missing or invalid metrics secret", code: "METRICS_GUARD_MISSING" } },
+              value: {
+                error: {
+                  message: "Missing or invalid metrics secret",
+                  code: "METRICS_GUARD_MISSING",
+                },
+              },
             },
             invalid: {
               summary: "Secret header incorrect",
-              value: { error: { message: "Missing or invalid metrics secret", code: "METRICS_GUARD_INVALID" } },
+              value: {
+                error: {
+                  message: "Missing or invalid metrics secret",
+                  code: "METRICS_GUARD_INVALID",
+                },
+              },
             },
           },
         },
@@ -612,11 +609,21 @@ registry.registerPath({
             },
             invalidToken: {
               summary: "Token not found or already used",
-              value: { error: { message: "Invalid verification token", code: "EMAIL_VERIFICATION_INVALID" } },
+              value: {
+                error: {
+                  message: "Invalid verification token",
+                  code: "EMAIL_VERIFICATION_INVALID",
+                },
+              },
             },
             expiredToken: {
               summary: "Token expired",
-              value: { error: { message: "Verification token expired", code: "EMAIL_VERIFICATION_EXPIRED" } },
+              value: {
+                error: {
+                  message: "Verification token expired",
+                  code: "EMAIL_VERIFICATION_EXPIRED",
+                },
+              },
             },
           },
         },
