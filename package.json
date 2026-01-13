@@ -22,6 +22,7 @@
     "pretest": "node scripts/stamp-build-meta.mjs",
     "pretest:ci": "node scripts/stamp-build-meta.mjs",
     "pretest:cov": "node scripts/stamp-build-meta.mjs",
+    "pretypecheck": "node scripts/stamp-build-meta.mjs",
     "secrets:scan": "node scripts/scan-secrets.mjs",
     "sessions:cleanup": "node scripts/cleanup-sessions.mjs",
     "setup:dev": "docker compose up -d db && npx prisma generate",
