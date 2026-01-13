@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { Logger } from "pino";
 
-import { getEmailService, resetEmailService } from "../src/services/emailService.js";
-import { getLogger, resetLogger } from "../src/lib/logger.js";
+import { getEmailService, resetEmailService } from "../src/infrastructure/email/emailService.js";
+import { getLogger, resetLogger } from "../src/infrastructure/logging/logger.js";
 import { resetConfigCache } from "../src/config/index.js";
 
 describe("Email Service", () => {
@@ -122,3 +122,13 @@ describe("Email Service", () => {
     expect(service1).not.toBe(service2);
   });
 });
+
+
+
+
+
+
+
+
+
+

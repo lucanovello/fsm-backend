@@ -1,14 +1,19 @@
 import { randomBytes, randomUUID } from "node:crypto";
 
-import { getConfig } from "../config/index.js";
-import { AppError } from "../lib/errors.js";
-import { decodeRefresh, signAccess, signRefresh, verifyAccess, verifyRefresh } from "../lib/jwt.js";
-import { getLogger } from "../lib/logger.js";
-import { hashPassword, verifyPassword } from "../lib/password.js";
-import { prisma } from "../lib/prisma.js";
-import { hashToken, tokenEqualsHash } from "../lib/tokenHash.js";
-
-import { getEmailService } from "./emailService.js";
+import { getConfig } from "../../config/index.js";
+import { prisma } from "../../infrastructure/db/prisma.js";
+import { getEmailService } from "../../infrastructure/email/emailService.js";
+import { getLogger } from "../../infrastructure/logging/logger.js";
+import { AppError } from "../../shared/errors.js";
+import {
+  decodeRefresh,
+  signAccess,
+  signRefresh,
+  verifyAccess,
+  verifyRefresh,
+} from "../../shared/jwt.js";
+import { hashPassword, verifyPassword } from "../../shared/password.js";
+import { hashToken, tokenEqualsHash } from "../../shared/tokenHash.js";
 
 import type { Prisma } from "@prisma/client";
 

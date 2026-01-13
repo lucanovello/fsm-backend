@@ -8,15 +8,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**", "coverage/**", "prisma/**", "src/build/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "coverage/**",
+      "prisma/**",
+      "src/build/**",
+      "src/generated/**",
+    ],
   },
   {
-    files: ["**/*.ts"],
-    ignores: ["tests/**"],
+    files: ["**/*.ts", "**/*.tsx"],
+    ignores: ["tests/**", "**/*.d.ts", "src/generated/**"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: ["./tsconfig.json"],
+        project: ["./tsconfig.eslint.json"],
         tsconfigRootDir: __dirname,
       },
       ecmaVersion: 2023,

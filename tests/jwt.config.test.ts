@@ -43,11 +43,11 @@ describe("config validation", () => {
 });
 
 describe("jwt config adoption", () => {
-  let jwtLib: typeof import("../src/lib/jwt.js");
+  let jwtLib: typeof import("../src/shared/jwt.js");
 
   beforeAll(async () => {
     vi.resetModules();
-    jwtLib = await import("../src/lib/jwt.js");
+    jwtLib = await import("../src/shared/jwt.js");
   });
 
   test("sign/verify access", () => {
@@ -62,3 +62,13 @@ describe("jwt config adoption", () => {
     expect(payload.sid).toBe("s1");
   });
 });
+
+
+
+
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 import nodemailer, { type Transporter } from "nodemailer";
 
-import { getConfig } from "../config/index.js";
-import { getLogger } from "../lib/logger.js";
+import { getConfig } from "../../config/index.js";
+import { getLogger } from "../logging/logger.js";
 
 export interface EmailService {
   sendVerificationEmail(to: string, token: string): Promise<void>;

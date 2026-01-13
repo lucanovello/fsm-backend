@@ -62,3 +62,13 @@ describe("log redaction", () => {
     expect(parsed.req.headers["x-metrics-secret"]).toBe("[REDACTED]");
   });
 });
+
+
+
+
+
+
+
+
+
+

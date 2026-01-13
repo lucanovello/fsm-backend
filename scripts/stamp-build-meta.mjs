@@ -1,5 +1,5 @@
 /**
- * Generates src/build/meta.ts with version, git sha, and build timestamp.
+ * Generates src/generated/meta.ts with version, git sha, and build timestamp.
  * Runs before tsc so imports work at runtime.
  */
 import { execSync } from "node:child_process";
@@ -26,7 +26,7 @@ const version = pkg.version ?? "0.0.0";
 const gitSha = safe("git rev-parse --short HEAD");
 const buildTime = new Date().toISOString();
 
-const outDir = resolve(__dirname, "../src/build");
+const outDir = resolve(__dirname, "../src/generated");
 mkdirSync(outDir, { recursive: true });
 
 const outFile = resolve(outDir, "meta.ts");

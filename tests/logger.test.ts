@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { resetConfigCache } from "../src/config/index.js";
-import { getLogger, resetLogger } from "../src/lib/logger.js";
+import { getLogger, resetLogger } from "../src/infrastructure/logging/logger.js";
 
 describe("Logger", () => {
   const ORIGINAL_ENV = { ...process.env };
@@ -70,3 +70,13 @@ describe("Logger", () => {
     expect(() => getLogger()).toThrow();
   });
 });
+
+
+
+
+
+
+
+
+
+

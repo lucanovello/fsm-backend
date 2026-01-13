@@ -28,3 +28,13 @@ test("rejects incorrect metrics secret", async () => {
 test("allows metrics with valid secret", async () => {
   await request(app).get("/metrics").set("x-metrics-secret", "guard-secret").expect(200);
 });
+
+
+
+
+
+
+
+
+
+

@@ -68,3 +68,13 @@ test("register 409 on duplicate email (case-insensitive)", async () => {
   expect(res.status).toBe(409);
   expect(res.body.error.code).toBe("EMAIL_TAKEN");
 });
+
+
+
+
+
+
+
+
+
+

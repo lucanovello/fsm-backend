@@ -63,8 +63,8 @@ describe("password reset flow", () => {
     expect(register.body.accessToken).toBeDefined();
     expect(register.body.refreshToken).toBeDefined();
 
-    const { prisma } = await import("../src/lib/prisma.js");
-    const { hashToken } = await import("../src/lib/tokenHash.js");
+    const { prisma } = await import("../src/infrastructure/db/prisma.js");
+    const { hashToken } = await import("../src/shared/tokenHash.js");
 
     const user = await prisma.user.findFirstOrThrow({
       where: { email: email.toLowerCase() },
@@ -103,8 +103,8 @@ describe("password reset flow", () => {
 
     await request(app).post("/auth/register").send({ email, password }).expect(201);
 
-    const { prisma } = await import("../src/lib/prisma.js");
-    const { hashToken } = await import("../src/lib/tokenHash.js");
+    const { prisma } = await import("../src/infrastructure/db/prisma.js");
+    const { hashToken } = await import("../src/shared/tokenHash.js");
 
     const user = await prisma.user.findFirstOrThrow({
       where: { email: email.toLowerCase() },
@@ -133,8 +133,8 @@ describe("password reset flow", () => {
 
     await request(app).post("/auth/register").send({ email, password }).expect(201);
 
-    const { prisma } = await import("../src/lib/prisma.js");
-    const { hashToken } = await import("../src/lib/tokenHash.js");
+    const { prisma } = await import("../src/infrastructure/db/prisma.js");
+    const { hashToken } = await import("../src/shared/tokenHash.js");
 
     const user = await prisma.user.findFirstOrThrow({
       where: { email: email.toLowerCase() },
@@ -172,3 +172,13 @@ describe("password reset flow", () => {
     expect(used.body.error?.code).toBe("PASSWORD_RESET_INVALID");
   });
 });
+
+
+
+
+
+
+
+
+
+

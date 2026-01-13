@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, expect, test } from "vitest";
 import request from "supertest";
 
-import { prisma } from "../src/lib/prisma.js";
+import { prisma } from "../src/infrastructure/db/prisma.js";
 import { resetDb } from "./utils/db.js";
 
 type UserRole = "USER" | "ADMIN";
@@ -119,3 +119,13 @@ test("protected user route validates uuid param", async () => {
 
   expect(res.body?.error?.code).toBe("VALIDATION");
 });
+
+
+
+
+
+
+
+
+
+

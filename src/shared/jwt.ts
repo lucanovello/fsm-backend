@@ -7,7 +7,8 @@ import jwt, { type JwtPayload, type Secret, type SignOptions } from "jsonwebtoke
 import { randomUUID } from "node:crypto";
 
 import { getConfig } from "../config/index.js";
-import { AppError } from "../lib/errors.js";
+
+import { AppError } from "./errors.js";
 
 const cfg = getConfig();
 

@@ -1,7 +1,7 @@
 import { setInterval } from "node:timers";
 
 import { getConfig } from "../config/index.js";
-import { prisma } from "../lib/prisma.js";
+import { prisma } from "../infrastructure/db/prisma.js";
 
 import type { Prisma } from "@prisma/client";
 

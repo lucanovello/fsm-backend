@@ -19,3 +19,13 @@ test("guard rejects production-like database url", () => {
     assertSafeTestDatabaseUrl(process.env.DATABASE_URL),
   ).toThrowError(/host must be localhost/i);
 });
+
+
+
+
+
+
+
+
+
+

@@ -4,7 +4,7 @@
  */
 import fs from "node:fs";
 
-import openapi from "../dist/docs/openapi.js";
+import openapi from "../dist/openapi/index.js";
 
 fs.writeFileSync("openapi.json", JSON.stringify(openapi, null, 2), "utf-8");
 console.log("openapi.json written");

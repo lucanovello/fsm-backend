@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, expect, test } from "vitest";
 import request from "supertest";
 
-import { prisma } from "../src/lib/prisma.js";
+import { prisma } from "../src/infrastructure/db/prisma.js";
 import { resetDb } from "./utils/db.js";
 
 let app: any;
@@ -15,7 +15,7 @@ beforeAll(async () => {
   process.env.JWT_ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY ?? "15m";
   process.env.JWT_REFRESH_EXPIRY = "1s";
 
-  ({ decodeRefresh } = await import("../src/lib/jwt.js"));
+  ({ decodeRefresh } = await import("../src/shared/jwt.js"));
   const mod = await import("../src/app.js");
   app = mod.default;
 });
@@ -55,3 +55,13 @@ test("refresh rejects when session expires", async () => {
   const session = await prisma.session.findUnique({ where: { id: sid } });
   expect(session?.valid).toBe(false);
 });
+
+
+
+
+
+
+
+
+
+
