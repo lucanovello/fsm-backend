@@ -5,7 +5,7 @@
  */
 import pino from "pino";
 
-import { getConfig } from "../config/index.js";
+import { getConfig } from "../../config/index.js";
 
 let loggerInstance: pino.Logger | null = null;
 

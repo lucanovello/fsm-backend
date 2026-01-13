@@ -78,3 +78,13 @@ test("/version emits cache headers for slow-changing metadata", async () => {
   expect(res.status).toBe(200);
   expect(res.headers["cache-control"]).toBe("public, max-age=300, stale-while-revalidate=60");
 });
+
+
+
+
+
+
+
+
+
+

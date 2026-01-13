@@ -108,3 +108,13 @@ describe("metrics guard in production", () => {
     await request(app).get("/metrics").set("x-forwarded-for", "203.0.113.22").expect(200);
   });
 });
+
+
+
+
+
+
+
+
+
+

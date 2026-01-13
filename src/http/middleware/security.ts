@@ -10,12 +10,12 @@ import helmet from "helmet";
 import { RedisStore, type SendCommandFn } from "rate-limit-redis";
 import { createClient } from "redis";
 
-import { getConfig } from "../config/index.js";
-import { AppError } from "../lib/errors.js";
+import { getConfig } from "../../config/index.js";
 import {
   markRateLimitRedisHealthy,
   markRateLimitRedisUnhealthy,
-} from "../lib/rateLimitHealth.js";
+} from "../../infrastructure/rate-limit/rateLimitHealth.js";
+import { AppError } from "../../shared/errors.js";
 
 import {
   setAuthRegisterRateLimit,

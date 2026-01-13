@@ -9,9 +9,9 @@
  */
 import { ZodError } from "zod";
 
-import { AppError } from "../lib/errors.js";
+import { AppError } from "../../shared/errors.js";
 
-import type { ErrorResponse } from "../types/http.js";
+import type { ErrorResponse } from "../../shared/types/http.js";
 import type { ErrorRequestHandler } from "express";
 
 const isProd = process.env.NODE_ENV === "production";

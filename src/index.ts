@@ -3,8 +3,8 @@
  */
 import "dotenv/config";
 import { ConfigError, getConfig } from "./config/index.js";
-import { getLogger } from "./lib/logger.js";
-import { prisma } from "./lib/prisma.js";
+import { prisma } from "./infrastructure/db/prisma.js";
+import { getLogger } from "./infrastructure/logging/logger.js";
 import { registerFatalHandlers } from "./lifecycle/fatalHandlers.js";
 import { beginShutdown } from "./lifecycle/state.js";
 

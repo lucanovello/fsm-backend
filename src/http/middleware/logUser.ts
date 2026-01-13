@@ -4,7 +4,7 @@
  * - userId is taken from payload.userId or payload.sub if present.
  */
 
-import { verifyAccess } from "../lib/jwt.js";
+import { verifyAccess } from "../../shared/jwt.js";
 
 import type { Request, Response, NextFunction } from "express";
 

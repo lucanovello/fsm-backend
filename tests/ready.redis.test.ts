@@ -4,7 +4,7 @@ import request from "supertest";
 
 import { resetDb } from "./utils/db.js";
 import { setupFakeRedis } from "./utils/mockRedisRateLimit.js";
-import { prisma } from "../src/lib/prisma.js";
+import { prisma } from "../src/infrastructure/db/prisma.js";
 
 const ORIGINAL_ENV: Record<string, string | undefined> = {};
 const REQUIRED_ENV = [
@@ -60,7 +60,7 @@ test("readiness fails when redis is unhealthy", async () => {
   const app = mod.default;
 
   const { markRateLimitRedisUnhealthy, getRateLimitRedisHealth } = await import(
-    "../src/lib/rateLimitHealth.js"
+    "../src/infrastructure/rate-limit/rateLimitHealth.js"
   );
   markRateLimitRedisUnhealthy("connection dropped");
   expect(getRateLimitRedisHealth().status).toBe("unhealthy");
@@ -81,3 +81,13 @@ test("readiness returns ready once redis recovers", async () => {
   expect(res.status).toBe(200);
   expect(res.body).toEqual({ status: "ready" });
 });
+
+
+
+
+
+
+
+
+
+

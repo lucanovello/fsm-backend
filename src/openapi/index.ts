@@ -19,7 +19,7 @@ import {
   RequestPasswordResetSchema,
   ResetPasswordSchema,
   VerifyEmailSchema,
-} from "../dto/auth.js";
+} from "../modules/auth/dto/auth.dto.js";
 
 const registry = new OpenAPIRegistry();
 

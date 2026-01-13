@@ -67,7 +67,7 @@ describe("security middleware teardown", () => {
     const { resetConfigCache } = await import("../src/config/index.js");
     resetConfigCache();
 
-    const { registerSecurity } = await import("../src/middleware/security.js");
+    const { registerSecurity } = await import("../src/http/middleware/security.js");
     const app = express();
     const teardown = await registerSecurity(app);
 
@@ -77,3 +77,13 @@ describe("security middleware teardown", () => {
     expect(disconnect).toHaveBeenCalledOnce();
   });
 });
+
+
+
+
+
+
+
+
+
+

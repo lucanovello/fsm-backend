@@ -1,5 +1,5 @@
 // tests/utils/db.ts
-import { prisma } from "../../src/lib/prisma";
+import { prisma } from "../../src/infrastructure/db/prisma.js";
 
 /**
  * Raw DATABASE_URL from the environment.
@@ -76,3 +76,13 @@ export const closeDb = async (): Promise<void> => {
  * (similar to the old `run()` pattern, but without extra Prisma constructors).
  */
 void ensureDbReady();
+
+
+
+
+
+
+
+
+
+

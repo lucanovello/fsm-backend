@@ -11,19 +11,19 @@ import pino, { type LoggerOptions } from "pino";
 import pinoHttp, { type Options } from "pino-http";
 import swaggerUi from "swagger-ui-express";
 
-import { BUILD_VERSION, BUILD_GIT_SHA, BUILD_TIME } from "./build/meta.js";
 import { getConfig, type AppConfig, type MetricsGuardConfig } from "./config/index.js";
-import openapi from "./docs/openapi.js";
-import { prisma } from "./lib/prisma.js";
-import { getRateLimitRedisHealth } from "./lib/rateLimitHealth.js";
+import { BUILD_VERSION, BUILD_GIT_SHA, BUILD_TIME } from "./generated/meta.js";
+import { metricsMiddleware, metricsHandler } from "./http/metrics/index.js";
+import { errorHandler } from "./http/middleware/errorHandler.js";
+import { attachUserToLog } from "./http/middleware/logUser.js";
+import { notFound } from "./http/middleware/notFound.js";
+import { registerSecurity, type SecurityTeardown } from "./http/middleware/security.js";
+import { auth as authRoutes } from "./http/routes/auth.routes.js";
+import { protectedRoutes } from "./http/routes/protected.routes.js";
+import { prisma } from "./infrastructure/db/prisma.js";
+import { getRateLimitRedisHealth } from "./infrastructure/rate-limit/rateLimitHealth.js";
 import { isShuttingDown } from "./lifecycle/state.js";
-import { metricsMiddleware, metricsHandler } from "./metrics/index.js";
-import { errorHandler } from "./middleware/errorHandler.js";
-import { attachUserToLog } from "./middleware/logUser.js";
-import { notFound } from "./middleware/notFound.js";
-import { registerSecurity, type SecurityTeardown } from "./middleware/security.js";
-import { auth as authRoutes } from "./routes/auth.js";
-import { protectedRoutes } from "./routes/protected.js";
+import openapi from "./openapi/index.js";
 
 import type { IncomingMessage, ServerResponse } from "node:http";
 

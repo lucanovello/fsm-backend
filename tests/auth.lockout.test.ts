@@ -48,7 +48,7 @@ describe("login brute-force guard", () => {
       .expect(429);
     expect(locked.body.error?.code).toBe("LOGIN_LOCKED");
 
-    const { prisma } = await import("../src/lib/prisma.js");
+    const { prisma } = await import("../src/infrastructure/db/prisma.js");
     await prisma.loginAttempt.updateMany({
       where: { emailLowercase: email.toLowerCase() },
       data: {
@@ -70,3 +70,13 @@ describe("login brute-force guard", () => {
     expect(attempts.length).toBe(0);
   });
 });
+
+
+
+
+
+
+
+
+
+

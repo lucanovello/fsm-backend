@@ -40,8 +40,8 @@ describe("email verification flow", () => {
     expect(register.body.emailVerificationRequired).toBe(true);
     expect(register.body.accessToken).toBeUndefined();
 
-    const { prisma } = await import("../src/lib/prisma.js");
-    const { hashToken } = await import("../src/lib/tokenHash.js");
+    const { prisma } = await import("../src/infrastructure/db/prisma.js");
+    const { hashToken } = await import("../src/shared/tokenHash.js");
 
     const user = await prisma.user.findFirstOrThrow({
       where: { email: email.toLowerCase() },
@@ -87,8 +87,8 @@ describe("email verification flow", () => {
 
     await request(app).post("/auth/register").send({ email, password }).expect(201);
 
-    const { prisma } = await import("../src/lib/prisma.js");
-    const { hashToken } = await import("../src/lib/tokenHash.js");
+    const { prisma } = await import("../src/infrastructure/db/prisma.js");
+    const { hashToken } = await import("../src/shared/tokenHash.js");
 
     const user = await prisma.user.findFirstOrThrow({
       where: { email: email.toLowerCase() },
@@ -130,8 +130,8 @@ describe("email verification flow", () => {
       .expect(401);
     expect(denied.body.error?.code).toBe("INVALID_CREDENTIALS");
 
-    const { prisma } = await import("../src/lib/prisma.js");
-    const { hashToken } = await import("../src/lib/tokenHash.js");
+    const { prisma } = await import("../src/infrastructure/db/prisma.js");
+    const { hashToken } = await import("../src/shared/tokenHash.js");
 
     const user = await prisma.user.findFirstOrThrow({
       where: { email: email.toLowerCase() },
@@ -155,3 +155,13 @@ describe("email verification flow", () => {
     expect(allowed.body.accessToken).toBeDefined();
   });
 });
+
+
+
+
+
+
+
+
+
+

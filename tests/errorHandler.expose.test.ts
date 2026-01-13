@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { AppError } from "../src/lib/errors.js";
-import { errorHandler } from "../src/middleware/errorHandler.js";
+import { AppError } from "../src/shared/errors.js";
+import { errorHandler } from "../src/http/middleware/errorHandler.js";
 
 function createMockRes() {
   const json = vi.fn();
@@ -55,3 +55,13 @@ describe("errorHandler AppError exposure", () => {
     });
   });
 });
+
+
+
+
+
+
+
+
+
+

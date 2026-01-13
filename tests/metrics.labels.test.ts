@@ -30,3 +30,13 @@ test("metrics label includes router base path", async () => {
   expect(metrics.text).toContain('route="/auth/login"');
   expect(metrics.text).not.toContain('route="/login"');
 });
+
+
+
+
+
+
+
+
+
+

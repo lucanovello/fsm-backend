@@ -65,3 +65,13 @@ describe("registerFatalHandlers", () => {
     expect(shutdown).not.toHaveBeenCalled();
   });
 });
+
+
+
+
+
+
+
+
+
+

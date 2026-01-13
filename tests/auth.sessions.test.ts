@@ -71,3 +71,13 @@ describe("session management", () => {
     await request(app).post("/auth/logout-all").expect(401);
   });
 });
+
+
+
+
+
+
+
+
+
+

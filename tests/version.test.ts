@@ -1,7 +1,7 @@
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import app from "../src/app.js";
-import { prisma } from "../src/lib/prisma.js";
+import { prisma } from "../src/infrastructure/db/prisma.js";
 
 describe("/version", () => {
   afterAll(async () => {
@@ -20,3 +20,13 @@ describe("/version", () => {
     );
   });
 });
+
+
+
+
+
+
+
+
+
+

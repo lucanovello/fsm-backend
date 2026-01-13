@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, expect, test } from "vitest";
 
-import { prisma } from "../src/lib/prisma.js";
+import { prisma } from "../src/infrastructure/db/prisma.js";
 import { resetDb } from "./utils/db.js";
 
 let cleanupExpiredSessions: (reference?: Date) => Promise<number>;
@@ -57,3 +57,13 @@ test("cleanup removes expired and invalid sessions", async () => {
   expect(remaining).toHaveLength(1);
   expect(remaining[0].id).toBe(validSession.id);
 });
+
+
+
+
+
+
+
+
+
+

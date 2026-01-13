@@ -30,3 +30,13 @@ test("GET /ready -> 200 {status:'ready'} (DB reachable)", async () => {
   expect(r.body).toEqual({ status: "ready" });
   expect(r.headers["x-request-id"]).toBeTruthy();
 });
+
+
+
+
+
+
+
+
+
+

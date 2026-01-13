@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import * as Auth from "../../modules/auth/auth.service.js";
 import {
   LoginSchema,
   RegisterSchema,
@@ -7,15 +8,14 @@ import {
   RequestPasswordResetSchema,
   ResetPasswordSchema,
   VerifyEmailSchema,
-} from "../dto/auth.js";
-import { AppError } from "../lib/errors.js";
+} from "../../modules/auth/dto/auth.dto.js";
+import { AppError } from "../../shared/errors.js";
 import {
   authRegisterRateLimit,
   authRequestPasswordResetRateLimit,
 } from "../middleware/authRateLimits.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { validateRequest } from "../middleware/validate.js";
-import * as Auth from "../services/authService.js";
 
 import type {
   LoginInput,
@@ -24,7 +24,7 @@ import type {
   RequestPasswordResetInput,
   ResetPasswordInput,
   VerifyEmailInput,
-} from "../dto/auth.js";
+} from "../../modules/auth/dto/auth.dto.js";
 
 export const auth = Router();
 

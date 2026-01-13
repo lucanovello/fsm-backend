@@ -11,7 +11,7 @@ beforeAll(async () => {
   process.env.JWT_REFRESH_EXPIRY ??= "7d";
 
   // Mock prisma to simulate DB outage for this test file
-  vi.mock("../src/lib/prisma.js", () => {
+  vi.mock("../src/infrastructure/db/prisma.js", () => {
     return {
       prisma: {
         $queryRaw: vi.fn().mockRejectedValue(new Error("db down")),
@@ -31,3 +31,13 @@ test("GET /ready -> 503 when DB ping fails", async () => {
   });
   expect(r.headers["x-request-id"]).toBeTruthy();
 });
+
+
+
+
+
+
+
+
+
+

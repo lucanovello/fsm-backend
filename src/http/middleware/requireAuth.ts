@@ -1,6 +1,6 @@
-import { AppError } from "../lib/errors.js";
-import { prisma } from "../lib/prisma.js";
-import { authenticateAccessToken } from "../services/authService.js";
+import { prisma } from "../../infrastructure/db/prisma.js";
+import { authenticateAccessToken } from "../../modules/auth/auth.service.js";
+import { AppError } from "../../shared/errors.js";
 
 import type { RequestHandler } from "express";
 

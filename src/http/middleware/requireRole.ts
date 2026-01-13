@@ -1,4 +1,4 @@
-import { AppError } from "../lib/errors.js";
+import { AppError } from "../../shared/errors.js";
 
 import type { Role } from "@prisma/client";
 import type { RequestHandler } from "express";
