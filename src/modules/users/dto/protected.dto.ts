@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../../../shared/zod.js";
 
 export const ProtectedUserParamsSchema = z.object({
   userId: z.uuid(),
