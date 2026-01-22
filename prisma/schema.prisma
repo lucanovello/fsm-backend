@@ -107,7 +107,7 @@ model Customer {
   billingAddressLine1 String?
   billingAddressLine2 String?
   billingCity         String?
-  billingProvince        String?
+  billingProvince     String?
   billingPostalCode   String?
   billingCountry      String?
   serviceLocations    ServiceLocation[]
