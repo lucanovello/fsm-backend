@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../../../shared/zod.js";
 
 const passwordComplexityMessage =
   "Password must be at least 8 characters and include lowercase, uppercase, number, and symbol.";
