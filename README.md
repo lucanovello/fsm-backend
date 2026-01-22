@@ -4,14 +4,15 @@
 
 Backend API for a small Field Service Management (FSM) app: customers, service locations, technicians, and work orders.
 
-- Domain notes: [`docs/domain-model.md`](./docs/domain-model.md)
-- Product notes: [`docs/PROJECT-OVERVIEW.md`](./docs/PROJECT-OVERVIEW.md)
+- API contracts (draft): [`docs/api-contracts-v0.md`](./docs/api-contracts-v0.md)
+- Ops runbook: [`docs/ops/runbook.md`](./docs/ops/runbook.md)
 
 ## Tech
 
 - Node.js 20 + TypeScript
 - Express
 - Prisma + Postgres
+- Redis (shared rate limiting; required in production)
 - JWT auth (access + rotating refresh tokens)
 - Vitest
 
@@ -20,6 +21,7 @@ Backend API for a small Field Service Management (FSM) app: customers, service l
 - Auth lifecycle: register, login, refresh, logout, password reset, email verification
 - Session tracking (Postgres)
 - Basic RBAC (`USER`, `ADMIN`)
+- Rate limiting + login lockout (Redis-backed in production; in-memory fallback for local dev)
 - Health + readiness probes
 - Build metadata endpoint
 - OpenAPI spec + Swagger UI (non-production)
@@ -30,7 +32,7 @@ Backend API for a small Field Service Management (FSM) app: customers, service l
 **Requirements**
 
 - Node 20.x (see [`.nvmrc`](./.nvmrc))
-- Docker (for Postgres)
+- Docker (for Postgres; optional Redis)
 
 1. Configure env:
 
@@ -42,6 +44,12 @@ cp .env.example .env
 
 ```bash
 docker compose up -d db
+```
+
+Optional: start Redis too (for Redis-backed rate limiting):
+
+```bash
+docker compose up -d redis
 ```
 
 3. Install deps, generate Prisma client, run migrations:
@@ -56,6 +64,12 @@ npx prisma migrate deploy
 
 ```bash
 npm run dev
+```
+
+Optional: run everything via Docker Compose (API + Postgres + Redis):
+
+```bash
+docker compose --profile dev-app up
 ```
 
 ## Seed sample data (dev)
@@ -99,10 +113,12 @@ docker compose exec db psql -U postgres -c "CREATE DATABASE fsm_backend_test;"
 npm test
 ```
 
+Note: the test runner prepares the DB by running `npx prisma migrate reset --force` against `DATABASE_URL` (auto-adjusting the DB name to end with `_test` if needed).
+
 Coverage:
 
 ```bash
-npm run test:cov
+npm run test:ci
 ```
 
 ## Useful endpoints
@@ -113,6 +129,8 @@ npm run test:cov
 - `GET /openapi.json` → OpenAPI document
 - `GET /docs` → Swagger UI (only when `NODE_ENV !== "production"`)
 - `GET /metrics` → Prometheus metrics (enabled when non-production or when explicitly enabled in config)
+- `POST /auth/*` → authentication lifecycle (register/login/refresh/logout/password reset/email verification)
+- `GET /api/*` → FSM endpoints (all require auth)
 
 ## License
 
