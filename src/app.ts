@@ -9,15 +9,18 @@ import * as ipaddr from "ipaddr.js";
 import crypto from "node:crypto";
 import pino, { type LoggerOptions } from "pino";
 import pinoHttp, { type Options } from "pino-http";
-import swaggerUi from "swagger-ui-express";
 
 import { getConfig, type AppConfig, type MetricsGuardConfig } from "./config/index.js";
 import { BUILD_VERSION, BUILD_GIT_SHA, BUILD_TIME } from "./generated/meta.js";
+import { cacheSlowChangingResponse } from "./http/cacheHeaders.js";
+import { registerDocs } from "./http/docs/swagger.js";
 import { metricsMiddleware, metricsHandler } from "./http/metrics/index.js";
+import { echoRequestId } from "./http/middleware/echoRequestId.js";
 import { errorHandler } from "./http/middleware/errorHandler.js";
 import { attachUserToLog } from "./http/middleware/logUser.js";
 import { notFound } from "./http/middleware/notFound.js";
 import { registerSecurity, type SecurityTeardown } from "./http/middleware/security.js";
+import { apiRoutes } from "./http/routes/api.routes.js";
 import { auth as authRoutes } from "./http/routes/auth.routes.js";
 import { protectedRoutes } from "./http/routes/protected.routes.js";
 import { prisma } from "./infrastructure/db/prisma.js";
@@ -33,15 +36,6 @@ let securityTeardown: SecurityTeardown | null = null;
 type NodeEnv = AppConfig["NODE_ENV"];
 
 const METRICS_SECRET_HEADER = "x-metrics-secret";
-const SLOW_CACHE_MAX_AGE_SECONDS = 300;
-const SLOW_CACHE_STALE_SECONDS = 60;
-
-const cacheSlowChangingResponse = (res: Response): void => {
-  res.setHeader(
-    "Cache-Control",
-    `public, max-age=${SLOW_CACHE_MAX_AGE_SECONDS}, stale-while-revalidate=${SLOW_CACHE_STALE_SECONDS}`,
-  );
-};
 
 const createMetricsGuard = (env: NodeEnv, guard: MetricsGuardConfig): RequestHandler[] => {
   const respondForbidden = (res: Response) =>
@@ -195,14 +189,6 @@ const pinoOptions: Options<IncomingMessage, ServerResponse<IncomingMessage>> = {
 const pinoHttpFn = pinoHttp as unknown as (opts: typeof pinoOptions) => RequestHandler;
 
 app.use(pinoHttpFn(pinoOptions));
-
-// Echo the id to clients so they can reference it in bug reports, etc.
-const echoRequestId: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
-  // pino-http attaches `req.id` as string | number
-  const id = (req as unknown as { id?: string | number }).id;
-  if (id != null) res.setHeader("x-request-id", String(id));
-  next();
-};
 app.use(echoRequestId);
 
 const jsonParser = express.json({ limit: cfg.REQUEST_BODY_LIMIT }) as unknown as RequestHandler;
@@ -301,21 +287,16 @@ app.get("/version", (_req: Request, res: Response) => {
 });
 
 // Feature routes
+app.use("/api", apiRoutes);
 app.use("/auth", authRoutes);
 app.use("/protected", protectedRoutes);
 
 // API docs
-// Serve OpenAPI spec as JSON
-app.get("/openapi.json", (_req, res) => {
-  cacheSlowChangingResponse(res);
-  res.json(openapi);
+registerDocs(app, {
+  openapi,
+  cacheSlowChangingResponse,
+  exposeUi: cfg.NODE_ENV !== "production",
 });
-
-// Serve Swagger UI only in non-production environments
-const shouldExposeDocs = cfg.NODE_ENV !== "production";
-if (shouldExposeDocs) {
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi));
-}
 
 // 404 + error pipeline
 app.use(notFound);
