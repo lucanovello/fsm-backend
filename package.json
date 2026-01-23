@@ -16,7 +16,7 @@
     "dev:up": "npm run setup:dev && npm run dev",
     "db:migrate:deploy": "npx prisma migrate deploy",
     "lint": "eslint . --max-warnings=0",
-    "openapi:gen": "node scripts/generate-openapi.mjs",
+    "openapi:gen": "npm run build && node scripts/generate-openapi.mjs",
     "postinstall": "prisma generate",
     "prebuild": "node scripts/stamp-build-meta.mjs",
     "prepare": "husky",
