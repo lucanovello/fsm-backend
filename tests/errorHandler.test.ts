@@ -50,7 +50,7 @@ describe("errorHandler", () => {
     }
   });
 
-  test("omits Zod issues in production", async () => {
+  test("redacts Zod issues in production", async () => {
     const oldEnv = { ...process.env };
     try {
       process.env.NODE_ENV = "production";
@@ -65,9 +65,13 @@ describe("errorHandler", () => {
       errorHandler((result as any).error, {} as any, res as any, vi.fn());
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(json).toHaveBeenCalledWith({
-        error: { message: "Invalid request payload", code: "VALIDATION" },
-      });
+      const body = json.mock.calls[0]![0];
+      expect(body.error.message).toBe("Invalid request payload");
+      expect(body.error.code).toBe("VALIDATION");
+      expect(Array.isArray(body.error.details)).toBe(true);
+      expect(body.error.details?.[0]).toHaveProperty("path");
+      expect(body.error.details?.[0]).toHaveProperty("code");
+      expect(body.error.details?.[0]).not.toHaveProperty("message");
     } finally {
       process.env = oldEnv;
       vi.resetModules();

@@ -36,22 +36,19 @@ const generator = new OpenApiGeneratorV31(registry.definitions);
 const openapi = generator.generateDocument({
   openapi: "3.1.0",
   info: {
-    title: "Starter Express Prisma JWT",
+    title: "FSM Backend API",
     version: "1.0.0",
     description: [
       "OpenAPI document generated from shared Zod schemas to guarantee parity between validation and documentation.",
       "",
-      "Versioning policy: the API is currently served under `/` (v1). Consumers should target `/v1` when exposed via a gateway and expect all breaking changes to ship under a new `/v{n}` prefix.",
+      "Base paths: `/api` (business resources), `/auth` (authentication), `/protected` (role-protected resources).",
     ].join("\n"),
     contact: {
-      name: "Platform Team",
-      url: "https://github.com/lucanovello/starter-express-prisma-jwt",
+      name: "FSM Backend",
+      url: "https://github.com/lucanovello/fsm-backend",
     },
   },
-  servers: [
-    { url: "/", description: "Default base path (v1)." },
-    { url: "/v1", description: "Recommended reverse-proxy mount for stable clients." },
-  ],
+  servers: [{ url: "/", description: "Default base path." }],
 });
 
 applyTagMetadata(openapi as unknown as Record<string, unknown>);

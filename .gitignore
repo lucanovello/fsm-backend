@@ -127,6 +127,9 @@ dist
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
+# VS Code settings
+.vscode/
+
 # yarn v3
 .pnp.*
 .yarn/*
@@ -145,7 +148,6 @@ vite.config.ts.timestamp-*
 /src/build/meta.ts
 /openapi.json
 .gitleaks.report.json
-.vscode/settings.json
 
 # Temporary files
 undefined/

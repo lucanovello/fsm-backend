@@ -24,15 +24,14 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
     const body: ErrorResponse = {
       error: { message: "Invalid request payload", code: "VALIDATION" },
     };
-    if (!isProd) body.error.details = err.issues;
+    body.error.details = isProd ? err.issues.map(({ path, code }) => ({ path, code })) : err.issues;
     return res.status(400).json(body);
   }
 
   // 2) Malformed JSON body
   const isInvalidJson =
     err instanceof SyntaxError &&
-    ((err as any).type === "entity.parse.failed" ||
-      (err as any).status === 400);
+    ((err as any).type === "entity.parse.failed" || (err as any).status === 400);
 
   if (isInvalidJson) {
     const body: ErrorResponse = { error: { message: "Invalid JSON" } };
