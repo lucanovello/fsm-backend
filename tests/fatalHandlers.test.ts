@@ -64,14 +64,36 @@ describe("registerFatalHandlers", () => {
     expect(logger.fatal).not.toHaveBeenCalled();
     expect(shutdown).not.toHaveBeenCalled();
   });
+
+  test("string and non-serializable reasons are converted to Error", () => {
+    const logger = { fatal: vi.fn() } as unknown as import("pino").Logger;
+    const shutdown = vi.fn();
+
+    const detach = registerFatalHandlers(logger, shutdown);
+
+    process.emit("unhandledRejection", "boom", Promise.resolve());
+
+    expect(logger.fatal).toHaveBeenCalledTimes(1);
+    const [meta] = (logger.fatal as any).mock.calls[0]!;
+    expect(meta.err).toBeInstanceOf(Error);
+    expect((meta.err as Error).message).toBe("boom");
+
+    // Reset listeners for another run
+    detach();
+
+    const logger2 = { fatal: vi.fn() } as unknown as import("pino").Logger;
+    const shutdown2 = vi.fn();
+    const detach2 = registerFatalHandlers(logger2, shutdown2);
+
+    const circular: any = {};
+    circular.self = circular;
+    process.emit("unhandledRejection", circular, Promise.resolve());
+
+    expect(logger2.fatal).toHaveBeenCalledTimes(1);
+    const [meta2] = (logger2.fatal as any).mock.calls[0]!;
+    expect(meta2.err).toBeInstanceOf(Error);
+    expect((meta2.err as Error).message).toMatch(/non-serializable/i);
+
+    detach2();
+  });
 });
-
-
-
-
-
-
-
-
-
-
