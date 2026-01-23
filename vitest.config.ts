@@ -11,10 +11,10 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       thresholds: {
-        lines: 80,
-        statements: 80,
-        functions: 75,
-        branches: 60,
+        lines: 90,
+        statements: 90,
+        functions: 90,
+        branches: 80,
       },
       exclude: [
         "dist/**",
@@ -25,6 +25,7 @@ export default defineConfig({
         "src/index.ts",
         "src/generated/**",
         "src/types/**",
+        "src/openapi/zod.ts",
         "tests/**",
         "vitest.config.ts",
         "*.config.*",

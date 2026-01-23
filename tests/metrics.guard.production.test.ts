@@ -107,14 +107,42 @@ describe("metrics guard in production", () => {
 
     await request(app).get("/metrics").set("x-forwarded-for", "203.0.113.22").expect(200);
   });
+
+  test("accepts IPv4-mapped IPv6 addresses in CIDR guard", async () => {
+    const app = await setupProductionApp(() => {
+      process.env.METRICS_GUARD = "cidr";
+      process.env.METRICS_GUARD_ALLOWLIST = "203.0.113.0/24";
+      process.env.TRUST_PROXY = "1";
+    });
+
+    await request(app).get("/metrics").set("x-forwarded-for", "::ffff:203.0.113.22").expect(200);
+  });
+
+  test("blocks when client IP cannot be parsed", async () => {
+    const app = await setupProductionApp(() => {
+      process.env.METRICS_GUARD = "cidr";
+      process.env.METRICS_GUARD_ALLOWLIST = "203.0.113.0/24";
+      process.env.TRUST_PROXY = "1";
+    });
+
+    const blocked = await request(app)
+      .get("/metrics")
+      .set("x-forwarded-for", "not-an-ip")
+      .expect(403);
+    expect(blocked.body?.error?.code).toBe("METRICS_GUARD_FORBIDDEN");
+  });
+
+  test("blocks when CIDR kind does not match candidate IP kind", async () => {
+    const app = await setupProductionApp(() => {
+      process.env.METRICS_GUARD = "cidr";
+      process.env.METRICS_GUARD_ALLOWLIST = "2001:db8::/32";
+      process.env.TRUST_PROXY = "1";
+    });
+
+    const blocked = await request(app)
+      .get("/metrics")
+      .set("x-forwarded-for", "203.0.113.22")
+      .expect(403);
+    expect(blocked.body?.error?.code).toBe("METRICS_GUARD_FORBIDDEN");
+  });
 });
-
-
-
-
-
-
-
-
-
-
