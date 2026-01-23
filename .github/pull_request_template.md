@@ -5,5 +5,3 @@
 ## Testing
 
 - [ ] npm run check
-
-## Checklist
