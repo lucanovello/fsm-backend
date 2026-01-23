@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { Role, WorkOrderPriority, WorkOrderStatus, type PrismaClient } from "@prisma/client";
 
-import { prisma } from "../src/lib/prisma.ts";
+import { prisma } from "../src/lib/prisma.js";
 
 function assertSafeToRun() {
   const nodeEnv = process.env.NODE_ENV ?? "development";

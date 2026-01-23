@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "audit:ci": "audit-ci --config ./audit-ci.jsonc",
-    "bootstrap:first-admin": "node scripts/users/bootstrap-first-admin.mjs",
+    "bootstrap:first-admin": "tsx scripts/users/bootstrap-first-admin.ts",
     "build": "tsc",
     "check": "npm run typecheck && npm run lint && npm run secrets:scan && npm run audit:ci && npm run test:ci",
     "check:commit": "npm run typecheck && npm run lint && npm run secrets:scan",
@@ -14,6 +14,7 @@
     "db:seed": "prisma db seed",
     "dev": "tsx watch src/index.ts",
     "dev:up": "npm run setup:dev && npm run dev",
+    "db:migrate:deploy": "npx prisma migrate deploy",
     "lint": "eslint . --max-warnings=0",
     "openapi:gen": "node scripts/generate-openapi.mjs",
     "postinstall": "prisma generate",
@@ -24,16 +25,16 @@
     "pretest:cov": "node scripts/stamp-build-meta.mjs",
     "pretypecheck": "node scripts/stamp-build-meta.mjs",
     "secrets:scan": "node scripts/scan-secrets.mjs",
-    "sessions:cleanup": "node scripts/cleanup-sessions.mjs",
+    "sessions:cleanup": "tsx scripts/cleanup-sessions.ts",
     "setup:dev": "docker compose up -d db && npx prisma generate",
     "start": "npm run start:prod",
-    "start:prod": "npm run build && npx prisma migrate deploy && node dist/index.js",
+    "start:prod": "npm run build && npm run db:migrate:deploy && npm run start:runtime",
     "start:runtime": "node dist/index.js",
     "test:setup-db": "node scripts/test/setup-test-db.mjs",
     "test": "cross-env TEST_ENV_FILE=.env.test npm run test:setup-db && vitest run",
     "test:ci": "cross-env TEST_ENV_FILE=.env.test npm run test:setup-db && vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "user:set-role": "node scripts/users/set-role.mjs"
+    "user:set-role": "tsx scripts/users/set-role.ts"
   },
   "engines": {
     "node": ">=20.19 <21"
