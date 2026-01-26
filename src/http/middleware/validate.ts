@@ -22,7 +22,12 @@ export function validateRequest({ body, params, query }: Schemas): RequestHandle
         req.params = params.parse(req.params) as typeof req.params;
       }
       if (query) {
-        req.query = query.parse(req.query) as typeof req.query;
+        const parsedQuery = query.parse(req.query) as typeof req.query;
+        if (req.query && typeof req.query === "object") {
+          Object.assign(req.query, parsedQuery);
+        } else {
+          req.query = parsedQuery;
+        }
       }
       next();
     } catch (err) {

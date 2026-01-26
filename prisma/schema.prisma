@@ -94,6 +94,7 @@ model Organization {
   name               String
   slug               String              @unique
   members            OrgMember[]
+  roles              OrgRole[]
   customers          Customer[]
   serviceLocations   ServiceLocation[]
   technicians        Technician[]
@@ -111,12 +112,63 @@ model OrgMember {
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   role      OrgMemberRole  @default(MEMBER)
+  roles     MemberRole[]
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
   @@unique([orgId, userId])
   @@index([orgId])
   @@index([userId])
+}
+
+model Permission {
+  id              String           @id @default(cuid())
+  key             String           @unique
+  description     String?
+  rolePermissions RolePermission[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model OrgRole {
+  id              String           @id @default(cuid())
+  org             Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId           String
+  name            String
+  key             String?
+  isSystem        Boolean          @default(false)
+  rolePermissions RolePermission[]
+  memberRoles     MemberRole[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([orgId, name])
+  @@unique([orgId, key])
+  @@index([orgId])
+}
+
+model RolePermission {
+  id           String      @id @default(cuid())
+  role         OrgRole     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId       String
+  permission   Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permissionId String
+  createdAt    DateTime    @default(now())
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model MemberRole {
+  id        String     @id @default(cuid())
+  member    OrgMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId  String
+  role      OrgRole    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  roleId    String
+  createdAt DateTime   @default(now())
+
+  @@unique([memberId, roleId])
+  @@index([roleId])
 }
 
 // FSM models

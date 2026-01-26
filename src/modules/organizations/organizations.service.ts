@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 
 import { prisma } from "../../infrastructure/db/prisma.js";
 import { AppError } from "../../shared/errors.js";
+import { assignSystemRoleToMember, ensureSystemRoles } from "../rbac/rbac.service.js";
 
 import type { CreateOrganizationInput } from "./dto/organizations.dto.js";
 
@@ -59,18 +60,28 @@ export async function createOrganization(userId: string, input: CreateOrganizati
     const slug = attempt === 0 ? base : `${base}-${randomUUID().replace(/-/g, "").slice(0, 8)}`;
 
     try {
-      const org = await prisma.organization.create({
-        data: {
-          name: input.name,
-          slug,
-          members: {
-            create: {
-              userId,
-              role: "OWNER",
-            },
+      const org = await prisma.$transaction(async (tx) => {
+        const createdOrg = await tx.organization.create({
+          data: {
+            name: input.name,
+            slug,
           },
-        },
-        select: { id: true, name: true, slug: true },
+          select: { id: true, name: true, slug: true },
+        });
+
+        const membership = await tx.orgMember.create({
+          data: {
+            orgId: createdOrg.id,
+            userId,
+            role: "OWNER",
+          },
+          select: { id: true },
+        });
+
+        await ensureSystemRoles(tx, createdOrg.id);
+        await assignSystemRoleToMember(tx, membership.id, createdOrg.id, "OWNER");
+
+        return createdOrg;
       });
 
       return {
