@@ -11,10 +11,12 @@ import { registerAuthSchemas } from "./components/auth.schemas.js";
 import { registerErrorSchemas } from "./components/errors.js";
 import { registerFsmSchemas } from "./components/fsm.schemas.js";
 import { registerOperationalSchemas } from "./components/operational.schemas.js";
+import { registerOrgSchemas } from "./components/org.schemas.js";
 import { registerSecuritySchemes } from "./components/securitySchemes.js";
 import { registerAuthPaths } from "./paths/auth.paths.js";
 import { registerFsmPaths } from "./paths/fsm.paths.js";
 import { registerOperationalPaths } from "./paths/operational.paths.js";
+import { registerOrgPaths } from "./paths/org.paths.js";
 import { registerRbacPaths } from "./paths/rbac.paths.js";
 import { applyTagMetadata } from "./tags.js";
 
@@ -25,11 +27,13 @@ registerSecuritySchemes(registry);
 registerOperationalSchemas(registry);
 registerAuthSchemas(registry);
 registerFsmSchemas(registry);
+registerOrgSchemas(registry);
 
 registerOperationalPaths(registry);
 registerAuthPaths(registry);
 registerRbacPaths(registry);
 registerFsmPaths(registry);
+registerOrgPaths(registry);
 
 const generator = new OpenApiGeneratorV31(registry.definitions);
 

@@ -17,6 +17,7 @@ model User {
   verificationTokens  VerificationToken[]
   passwordResetTokens PasswordResetToken[]
   loginAttempts       LoginAttempt[]
+  orgMemberships      OrgMember[]
   technician          Technician?
   workNotes           WorkNote[]
   createdAt           DateTime             @default(now())
@@ -83,6 +84,41 @@ enum Role {
   ADMIN
 }
 
+enum OrgMemberRole {
+  OWNER
+  MEMBER
+}
+
+model Organization {
+  id                 String              @id @default(cuid())
+  name               String
+  slug               String              @unique
+  members            OrgMember[]
+  customers          Customer[]
+  serviceLocations   ServiceLocation[]
+  technicians        Technician[]
+  workOrders         WorkOrder[]
+  workNotes          WorkNote[]
+  workOrderLineItems WorkOrderLineItem[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model OrgMember {
+  id        String         @id @default(cuid())
+  org       Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  role      OrgMemberRole  @default(MEMBER)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@unique([orgId, userId])
+  @@index([orgId])
+  @@index([userId])
+}
+
 // FSM models
 enum WorkOrderStatus {
   DRAFT
@@ -101,6 +137,8 @@ enum WorkOrderPriority {
 
 model Customer {
   id                  String            @id @default(cuid())
+  org                 Organization?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId               String?
   name                String
   email               String?
   phone               String?
@@ -114,10 +152,14 @@ model Customer {
   workOrders          WorkOrder[]
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
+
+  @@index([orgId])
 }
 
 model ServiceLocation {
   id           String      @id @default(cuid())
+  org          Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId        String?
   customer     Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId   String
   label        String?
@@ -134,10 +176,13 @@ model ServiceLocation {
   updatedAt    DateTime    @updatedAt
 
   @@index([customerId])
+  @@index([orgId])
 }
 
 model Technician {
   id          String      @id @default(cuid())
+  org         Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId       String?
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String      @unique
   displayName String
@@ -145,10 +190,14 @@ model Technician {
   workOrders  WorkOrder[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  @@index([orgId])
 }
 
 model WorkOrder {
   id                   String              @id @default(cuid())
+  org                  Organization?       @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId                String?
   customer             Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
   customerId           String
   serviceLocation      ServiceLocation     @relation(fields: [serviceLocationId], references: [id], onDelete: Cascade)
@@ -171,10 +220,13 @@ model WorkOrder {
   @@index([customerId])
   @@index([serviceLocationId])
   @@index([assignedTechnicianId])
+  @@index([orgId])
 }
 
 model WorkNote {
   id           String    @id @default(cuid())
+  org          Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId        String?
   workOrder    WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
   workOrderId  String
   author       User      @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
@@ -185,10 +237,13 @@ model WorkNote {
 
   @@index([workOrderId])
   @@index([authorUserId])
+  @@index([orgId])
 }
 
 model WorkOrderLineItem {
   id             String    @id @default(cuid())
+  org            Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId          String?
   workOrder      WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
   workOrderId    String
   description    String
@@ -198,4 +253,5 @@ model WorkOrderLineItem {
   updatedAt      DateTime  @updatedAt
 
   @@index([workOrderId])
+  @@index([orgId])
 }

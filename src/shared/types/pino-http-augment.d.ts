@@ -1,5 +1,5 @@
 import "express-serve-static-core";
-import type { Role } from "@prisma/client";
+import type { OrgMemberRole, Role } from "@prisma/client";
 import type { ReqId } from "pino-http";
 
 declare module "express-serve-static-core" {
@@ -9,6 +9,11 @@ declare module "express-serve-static-core" {
       id: string;
       role: Role;
       sessionId: string | null;
+    };
+    org?: {
+      id: string;
+      membershipId: string;
+      role: OrgMemberRole;
     };
   }
 }
