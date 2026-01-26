@@ -6,17 +6,26 @@ vi.mock("../src/infrastructure/db/prisma.js", () => {
     prisma: {
       orgMember: {
         findMany: vi.fn(),
+        create: vi.fn(),
       },
       organization: {
         create: vi.fn(),
       },
+      $transaction: vi.fn(),
     },
   };
 });
 
+vi.mock("../src/modules/rbac/rbac.service.js", () => ({
+  ensureSystemRoles: vi.fn(),
+  assignSystemRoleToMember: vi.fn(),
+}));
+
 let prisma: any;
 let listOrganizations: typeof import("../src/modules/organizations/organizations.service.js").listOrganizations;
 let createOrganization: typeof import("../src/modules/organizations/organizations.service.js").createOrganization;
+let ensureSystemRoles: typeof import("../src/modules/rbac/rbac.service.js").ensureSystemRoles;
+let assignSystemRoleToMember: typeof import("../src/modules/rbac/rbac.service.js").assignSystemRoleToMember;
 
 const prismaUniqueError = (target: string | string[]) =>
   new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
@@ -28,12 +37,15 @@ const prismaUniqueError = (target: string | string[]) =>
 describe("organizations.service", () => {
   beforeAll(async () => {
     ({ prisma } = await import("../src/infrastructure/db/prisma.js"));
+    ({ ensureSystemRoles, assignSystemRoleToMember } =
+      await import("../src/modules/rbac/rbac.service.js"));
     ({ listOrganizations, createOrganization } =
       await import("../src/modules/organizations/organizations.service.js"));
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
+    prisma.$transaction.mockImplementation(async (fn: any) => fn(prisma));
   });
 
   test("listOrganizations returns orgs for the user", async () => {
@@ -65,22 +77,28 @@ describe("organizations.service", () => {
       name: "Acme Services",
       slug: "acme-services",
     });
+    prisma.orgMember.create.mockResolvedValue({ id: "member-1" });
 
     const result = await createOrganization("user-1", { name: "Acme Services" });
 
+    expect(prisma.$transaction).toHaveBeenCalled();
     expect(prisma.organization.create).toHaveBeenCalledWith({
       data: {
         name: "Acme Services",
         slug: "acme-services",
-        members: {
-          create: {
-            userId: "user-1",
-            role: "OWNER",
-          },
-        },
       },
       select: { id: true, name: true, slug: true },
     });
+    expect(prisma.orgMember.create).toHaveBeenCalledWith({
+      data: {
+        orgId: "org-123",
+        userId: "user-1",
+        role: "OWNER",
+      },
+      select: { id: true },
+    });
+    expect(ensureSystemRoles).toHaveBeenCalledWith(prisma, "org-123");
+    expect(assignSystemRoleToMember).toHaveBeenCalledWith(prisma, "member-1", "org-123", "OWNER");
 
     expect(result).toEqual({
       organization: {
@@ -100,6 +118,7 @@ describe("organizations.service", () => {
         name: "Acme Services",
         slug: "acme-services-xyz",
       });
+    prisma.orgMember.create.mockResolvedValue({ id: "member-1" });
 
     const result = await createOrganization("user-1", { name: "Acme Services" });
 
@@ -124,6 +143,7 @@ describe("organizations.service", () => {
       name: "!!!",
       slug: "org",
     });
+    prisma.orgMember.create.mockResolvedValue({ id: "member-1" });
 
     const result = await createOrganization("user-1", { name: "!!!" });
 
@@ -131,12 +151,6 @@ describe("organizations.service", () => {
       data: {
         name: "!!!",
         slug: "org",
-        members: {
-          create: {
-            userId: "user-1",
-            role: "OWNER",
-          },
-        },
       },
       select: { id: true, name: true, slug: true },
     });

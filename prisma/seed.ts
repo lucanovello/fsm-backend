@@ -2,6 +2,11 @@ import "dotenv/config";
 import { Role, WorkOrderPriority, WorkOrderStatus, type PrismaClient } from "@prisma/client";
 
 import { prisma } from "../src/lib/prisma.js";
+import {
+  assignSystemRoleToMember,
+  ensurePermissionCatalog,
+  ensureSystemRoles,
+} from "../src/modules/rbac/rbac.service.js";
 
 function assertSafeToRun() {
   const nodeEnv = process.env.NODE_ENV ?? "development";
@@ -379,6 +384,25 @@ async function seedWorkOrders(
   return { workOrderIds: workOrders.map((w) => w.id) };
 }
 
+async function seedRbac(db: PrismaClient) {
+  await ensurePermissionCatalog(db);
+
+  const orgs = await db.organization.findMany({ select: { id: true } });
+
+  for (const org of orgs) {
+    await ensureSystemRoles(db, org.id);
+
+    const ownerMemberships = await db.orgMember.findMany({
+      where: { orgId: org.id, role: "OWNER" },
+      select: { id: true },
+    });
+
+    for (const membership of ownerMemberships) {
+      await assignSystemRoleToMember(db, membership.id, org.id, "OWNER");
+    }
+  }
+}
+
 async function main() {
   assertSafeToRun();
 
@@ -389,6 +413,7 @@ async function main() {
   const users = await seedUsersAndTechnicians(prisma);
   const customers = await seedCustomersAndLocations(prisma);
   const { workOrderIds } = await seedWorkOrders(prisma, users, customers);
+  await seedRbac(prisma);
 
   console.log("Seed complete");
   console.log({
