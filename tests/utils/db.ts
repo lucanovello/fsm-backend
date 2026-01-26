@@ -56,6 +56,8 @@ export const ensureDbReady = async (): Promise<void> => {
  */
 export const resetDb = async (): Promise<void> => {
   await prisma.$transaction([
+    prisma.orgMember.deleteMany(),
+    prisma.organization.deleteMany(),
     prisma.loginAttempt.deleteMany(),
     prisma.passwordResetToken.deleteMany(),
     prisma.verificationToken.deleteMany(),
@@ -76,13 +78,3 @@ export const closeDb = async (): Promise<void> => {
  * (similar to the old `run()` pattern, but without extra Prisma constructors).
  */
 void ensureDbReady();
-
-
-
-
-
-
-
-
-
-

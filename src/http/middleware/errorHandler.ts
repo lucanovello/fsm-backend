@@ -16,8 +16,13 @@ import type { ErrorRequestHandler } from "express";
 
 const isProd = process.env.NODE_ENV === "production";
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (res.headersSent) return next(err);
+
+  // Prefer per-request logger from pino-http. Avoid config-dependent logger init here.
+  const reqLog = (req as any)?.log;
+  const log = reqLog && typeof reqLog.error === "function" ? reqLog : null;
+  const shouldLog = process.env.NODE_ENV !== "test" && !!log;
 
   // 1) Validation errors from Zod -> 400 with stable envelope
   if (err instanceof ZodError) {
@@ -41,6 +46,19 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   // 3) Domain errors
   if (err instanceof AppError) {
     const status = err.statusCode || 400;
+
+    if (shouldLog && status >= 500) {
+      log!.error(
+        {
+          err,
+          reqId: (req as any)?.id,
+          method: req.method,
+          url: (req as any)?.originalUrl ?? req.url,
+        },
+        "Request failed",
+      );
+    }
+
     const expose = err.expose ?? status < 500;
     const message = expose
       ? err.message || "Bad Request"
@@ -57,6 +75,19 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   // 4) Generic HTTP-ish errors with status/statusCode
   if (typeof err?.status === "number" || typeof err?.statusCode === "number") {
     const status = (err.status ?? err.statusCode) as number;
+
+    if (shouldLog && status >= 500) {
+      log!.error(
+        {
+          err,
+          reqId: (req as any)?.id,
+          method: req.method,
+          url: (req as any)?.originalUrl ?? req.url,
+        },
+        "Request failed",
+      );
+    }
+
     const body: ErrorResponse = {
       error: { message: err?.message || "Error" },
     };
@@ -64,6 +95,18 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   }
 
   // 5) Fallback
+  if (shouldLog) {
+    log!.error(
+      {
+        err,
+        reqId: (req as any)?.id,
+        method: req.method,
+        url: (req as any)?.originalUrl ?? req.url,
+      },
+      "Unhandled request error",
+    );
+  }
+
   const body: ErrorResponse = { error: { message: "Internal Server Error" } };
   return res.status(500).json(body);
 };

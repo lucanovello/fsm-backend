@@ -92,6 +92,21 @@ Seeded accounts (from [`prisma/seed.ts`](./prisma/seed.ts)):
 - `tech1@example.com`
 - `tech2@example.com`
 
+## Backfill legacy organization (multi-tenant foundation)
+
+Create a default legacy org, attach existing users as members, and backfill `orgId` on
+existing domain rows:
+
+```bash
+npm run orgs:backfill
+```
+
+Optional overrides:
+
+```bash
+LEGACY_ORG_NAME="Legacy Organization" LEGACY_ORG_SLUG="legacy-default" npm run orgs:backfill
+```
+
 ## Testing
 
 1. Start Postgres and create the test env file:
