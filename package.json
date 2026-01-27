@@ -35,7 +35,8 @@
     "test": "cross-env TEST_ENV_FILE=.env.test npm run test:setup-db && vitest run",
     "test:ci": "cross-env TEST_ENV_FILE=.env.test npm run test:setup-db && vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "user:set-role": "tsx scripts/users/set-role.ts"
+    "user:set-role": "tsx scripts/users/set-role.ts",
+    "workforce:backfill": "tsx scripts/workforce/backfill-service-resources.ts"
   },
   "engines": {
     "node": ">=20.19 <21"

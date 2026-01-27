@@ -98,6 +98,11 @@ model Organization {
   customers          Customer[]
   serviceLocations   ServiceLocation[]
   technicians        Technician[]
+  serviceResources   ServiceResource[]
+  skills             Skill[]
+  resourceSkills     ResourceSkill[]
+  crews              Crew[]
+  crewMembers        CrewMember[]
   workOrders         WorkOrder[]
   workNotes          WorkNote[]
   workOrderLineItems WorkOrderLineItem[]
@@ -113,6 +118,7 @@ model OrgMember {
   userId    String
   role      OrgMemberRole  @default(MEMBER)
   roles     MemberRole[]
+  serviceResources ServiceResource[]
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
@@ -244,6 +250,87 @@ model Technician {
   updatedAt   DateTime    @updatedAt
 
   @@index([orgId])
+}
+
+model ServiceResource {
+  id                 String      @id @default(cuid())
+  org                Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId              String
+  orgMember          OrgMember?  @relation(fields: [orgMemberId], references: [id], onDelete: SetNull)
+  orgMemberId        String?
+  legacyTechnicianId String?
+  displayName        String
+  email              String?
+  phone              String?
+  isActive           Boolean     @default(true)
+  skills             ResourceSkill[]
+  crewMemberships    CrewMember[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@unique([orgId, orgMemberId])
+  @@unique([orgId, legacyTechnicianId])
+  @@index([orgId])
+}
+
+model Skill {
+  id          String      @id @default(cuid())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  name        String
+  description String?
+  resources   ResourceSkill[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+model ResourceSkill {
+  id         String          @id @default(cuid())
+  org        Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  resource   ServiceResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resourceId String
+  skill      Skill           @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skillId    String
+  createdAt  DateTime        @default(now())
+
+  @@unique([orgId, resourceId, skillId])
+  @@index([orgId])
+  @@index([resourceId])
+  @@index([skillId])
+}
+
+model Crew {
+  id          String        @id @default(cuid())
+  org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  name        String
+  description String?
+  members     CrewMember[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+model CrewMember {
+  id         String          @id @default(cuid())
+  org        Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  crew       Crew            @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  crewId     String
+  resource   ServiceResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resourceId String
+  createdAt  DateTime        @default(now())
+
+  @@unique([orgId, crewId, resourceId])
+  @@index([orgId])
+  @@index([crewId])
+  @@index([resourceId])
 }
 
 model WorkOrder {

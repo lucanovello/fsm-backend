@@ -1,7 +1,9 @@
 import { Router } from "express";
 
+import { crewsRoutes } from "../../modules/crews/crews.routes.js";
 import { customersRoutes } from "../../modules/customers/customers.routes.js";
 import { organizationsRoutes } from "../../modules/organizations/organizations.routes.js";
+import { serviceResourcesRoutes } from "../../modules/service-resources/serviceResources.routes.js";
 import { techniciansRoutes } from "../../modules/technicians/technicians.routes.js";
 import { workOrdersRoutes } from "../../modules/work-orders/workOrders.routes.js";
 import { resolveOrgContext } from "../middleware/orgContext.js";
@@ -14,5 +16,7 @@ apiRoutes.use(requireAuth);
 apiRoutes.use(resolveOrgContext());
 apiRoutes.use("/organizations", organizationsRoutes);
 apiRoutes.use("/customers", customersRoutes);
+apiRoutes.use("/service-resources", serviceResourcesRoutes);
+apiRoutes.use("/crews", crewsRoutes);
 apiRoutes.use("/technicians", techniciansRoutes);
 apiRoutes.use("/work-orders", workOrdersRoutes);

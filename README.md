@@ -107,6 +107,21 @@ Optional overrides:
 LEGACY_ORG_NAME="Legacy Organization" LEGACY_ORG_SLUG="legacy-default" npm run orgs:backfill
 ```
 
+## Backfill workforce resources (legacy technicians)
+
+Map legacy technicians into service resources and, when an org has resources but no crews,
+create a default crew and attach all resources to it:
+
+```bash
+npm run workforce:backfill
+```
+
+Optional overrides:
+
+```bash
+DEFAULT_CREW_NAME="Default Crew" npm run workforce:backfill
+```
+
 ## Testing
 
 1. Start Postgres and create the test env file:
