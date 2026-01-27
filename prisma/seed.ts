@@ -25,6 +25,11 @@ async function hashPassword(plain: string): Promise<string> {
 }
 
 async function resetDomainTables(db: PrismaClient) {
+  await db.crewMember.deleteMany();
+  await db.resourceSkill.deleteMany();
+  await db.crew.deleteMany();
+  await db.serviceResource.deleteMany();
+  await db.skill.deleteMany();
   await db.workOrderLineItem.deleteMany();
   await db.workNote.deleteMany();
   await db.workOrder.deleteMany();
