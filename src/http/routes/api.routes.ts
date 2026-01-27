@@ -7,6 +7,7 @@ import { schedulingRoutes } from "../../modules/scheduling/scheduling.routes.js"
 import { serviceResourcesRoutes } from "../../modules/service-resources/serviceResources.routes.js";
 import { techniciansRoutes } from "../../modules/technicians/technicians.routes.js";
 import { workOrdersRoutes } from "../../modules/work-orders/workOrders.routes.js";
+import { workTemplatesRoutes } from "../../modules/work-templates/workTemplates.routes.js";
 import { resolveOrgContext } from "../middleware/orgContext.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 
@@ -21,4 +22,5 @@ apiRoutes.use("/service-resources", serviceResourcesRoutes);
 apiRoutes.use("/crews", crewsRoutes);
 apiRoutes.use("/technicians", techniciansRoutes);
 apiRoutes.use("/work-orders", workOrdersRoutes);
+apiRoutes.use("/work-templates", workTemplatesRoutes);
 apiRoutes.use("/scheduling", schedulingRoutes);

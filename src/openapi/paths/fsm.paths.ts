@@ -10,12 +10,27 @@ import {
   CustomersListResponseSchema,
   TechniciansListQueryParamsSchema,
   TechniciansListResponseSchema,
+  WorkOrderIncidentCreateRequestSchema,
+  WorkOrderIncidentParamsOpenApiSchema,
+  WorkOrderIncidentResponseSchema,
+  WorkOrderTaskInstantiateRequestSchema,
+  WorkOrderTaskParamsOpenApiSchema,
+  WorkOrderTaskStatusUpdateRequestSchema,
+  WorkOrderTaskStatusUpdateResponseSchema,
+  WorkOrderTasksResponseSchema,
+  WorkTemplateCreateRequestSchema,
+  WorkTemplateIdParamsOpenApiSchema,
+  WorkTemplateResponseSchema,
+  WorkTemplateUpdateRequestSchema,
+  WorkTemplatesListQueryParamsSchema,
+  WorkTemplatesListResponseSchema,
   WorkOrderDetailResponseSchema,
   WorkOrderIdParamsOpenApiSchema,
   WorkOrdersListQueryParamsSchema,
   WorkOrdersListResponseSchema,
 } from "../components/fsm.schemas.js";
 import { Tags } from "../tags.js";
+import { z } from "../zod.js";
 
 import type { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 
@@ -114,6 +129,198 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
       404: errorResponse("Work order not found", {
         message: "Work order not found",
         code: "WORK_ORDER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/work-templates",
+    summary: "List work templates",
+    description: "Search and paginate work templates.",
+    tags: [Tags.WorkTemplates],
+    security: [{ BearerAuth: [] }],
+    request: { query: WorkTemplatesListQueryParamsSchema },
+    responses: {
+      200: {
+        description: "Work template list.",
+        content: { "application/json": { schema: WorkTemplatesListResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/work-templates",
+    summary: "Create work template",
+    description: "Create a work template with tasks and skill requirements.",
+    tags: [Tags.WorkTemplates],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: {
+        content: { "application/json": { schema: WorkTemplateCreateRequestSchema } },
+      },
+    },
+    responses: {
+      201: {
+        description: "Work template created.",
+        content: { "application/json": { schema: WorkTemplateResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/work-templates/{id}",
+    summary: "Get work template",
+    description: "Fetch a work template with tasks and skill requirements.",
+    tags: [Tags.WorkTemplates],
+    security: [{ BearerAuth: [] }],
+    request: { params: WorkTemplateIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Work template found.",
+        content: { "application/json": { schema: WorkTemplateResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work template not found", {
+        message: "Work template not found",
+        code: "WORK_TEMPLATE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/work-templates/{id}",
+    summary: "Update work template",
+    description: "Update a work template and replace tasks/requirements when provided.",
+    tags: [Tags.WorkTemplates],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: WorkTemplateIdParamsOpenApiSchema,
+      body: {
+        content: { "application/json": { schema: WorkTemplateUpdateRequestSchema } },
+      },
+    },
+    responses: {
+      200: {
+        description: "Work template updated.",
+        content: { "application/json": { schema: WorkTemplateResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work template not found", {
+        message: "Work template not found",
+        code: "WORK_TEMPLATE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/work-templates/{id}",
+    summary: "Delete work template",
+    description: "Delete a work template.",
+    tags: [Tags.WorkTemplates],
+    security: [{ BearerAuth: [] }],
+    request: { params: WorkTemplateIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Work template deleted.",
+        content: { "application/json": { schema: z.object({ deleted: z.boolean() }) } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work template not found", {
+        message: "Work template not found",
+        code: "WORK_TEMPLATE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/work-orders/{id}/incidents",
+    summary: "Add work order incident",
+    description: "Add an incident to a work order, optionally from a template.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: WorkOrderIdParamsOpenApiSchema,
+      body: {
+        content: { "application/json": { schema: WorkOrderIncidentCreateRequestSchema } },
+      },
+    },
+    responses: {
+      201: {
+        description: "Incident created.",
+        content: { "application/json": { schema: WorkOrderIncidentResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order not found", {
+        message: "Work order not found",
+        code: "WORK_ORDER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/work-orders/{id}/incidents/{incidentId}/tasks/instantiate",
+    summary: "Instantiate work order tasks",
+    description: "Create tasks for an incident using a template.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: WorkOrderIncidentParamsOpenApiSchema,
+      body: {
+        content: { "application/json": { schema: WorkOrderTaskInstantiateRequestSchema } },
+      },
+    },
+    responses: {
+      201: {
+        description: "Tasks created.",
+        content: { "application/json": { schema: WorkOrderTasksResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order incident not found", {
+        message: "Work order incident not found",
+        code: "WORK_ORDER_INCIDENT_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/work-orders/{id}/tasks/{taskId}/status",
+    summary: "Update work order task status",
+    description: "Update task status and return completion readiness.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: WorkOrderTaskParamsOpenApiSchema,
+      body: {
+        content: { "application/json": { schema: WorkOrderTaskStatusUpdateRequestSchema } },
+      },
+    },
+    responses: {
+      200: {
+        description: "Task updated.",
+        content: { "application/json": { schema: WorkOrderTaskStatusUpdateResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order task not found", {
+        message: "Work order task not found",
+        code: "WORK_ORDER_TASK_NOT_FOUND",
       }),
     },
   });

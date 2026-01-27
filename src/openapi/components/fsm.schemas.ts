@@ -5,8 +5,19 @@ import {
 import { TechniciansListQuerySchema } from "../../modules/technicians/dto/technicians.dto.js";
 import {
   WorkOrderIdParamsSchema,
+  WorkOrderIncidentCreateSchema,
+  WorkOrderIncidentParamsSchema,
+  WorkOrderTaskInstantiateSchema,
+  WorkOrderTaskParamsSchema,
+  WorkOrderTaskStatusUpdateSchema,
   WorkOrdersListQuerySchema,
 } from "../../modules/work-orders/dto/workOrders.dto.js";
+import {
+  WorkTemplateCreateSchema,
+  WorkTemplateIdParamsSchema,
+  WorkTemplateUpdateSchema,
+  WorkTemplatesListQuerySchema,
+} from "../../modules/work-templates/dto/workTemplates.dto.js";
 import { z } from "../zod.js";
 
 import type { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
@@ -58,6 +69,10 @@ export const WorkOrderStatusSchema = z
 export const WorkOrderPrioritySchema = z
   .enum(["LOW", "NORMAL", "HIGH", "URGENT"])
   .openapi("WorkOrderPriority", { example: "HIGH" });
+
+export const TaskStatusSchema = z
+  .enum(["TODO", "DONE", "SKIPPED"])
+  .openapi("TaskStatus", { example: "TODO" });
 
 export const CustomerRecentWorkOrderSchema = z
   .object({
@@ -307,6 +322,125 @@ export const WorkOrderDetailResponseSchema = z
     },
   });
 
+export const CompletionReadinessSchema = z
+  .object({
+    total: z.number().int().nonnegative(),
+    done: z.number().int().nonnegative(),
+    skipped: z.number().int().nonnegative(),
+    pending: z.number().int().nonnegative(),
+    isReady: z.boolean(),
+  })
+  .openapi("CompletionReadiness", {
+    example: { total: 3, done: 2, skipped: 1, pending: 0, isReady: true },
+  });
+
+export const WorkOrderIncidentSchema = z
+  .object({
+    id: z.string().openapi({ example: "inc_1" }),
+    workOrderId: z.string().openapi({ example: "wo_123" }),
+    templateId: z.string().nullable().openapi({ example: "tpl_1" }),
+    title: z.string().openapi({ example: "Leak Investigation" }),
+    description: z.string().nullable().openapi({ example: "Inspect irrigation leak" }),
+    sortOrder: z.number().int().openapi({ example: 0 }),
+    createdAt: z.string().datetime().openapi({ example: "2025-04-12T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-04-12T09:00:00Z" }),
+  })
+  .openapi("WorkOrderIncident");
+
+export const WorkOrderIncidentResponseSchema = z
+  .object({
+    incident: WorkOrderIncidentSchema,
+  })
+  .openapi("WorkOrderIncidentResponse");
+
+export const WorkOrderTaskSchema = z
+  .object({
+    id: z.string().openapi({ example: "task_1" }),
+    incidentId: z.string().openapi({ example: "inc_1" }),
+    title: z.string().openapi({ example: "Replace valve" }),
+    description: z.string().nullable().openapi({ example: "Install new valve" }),
+    status: TaskStatusSchema,
+    sortOrder: z.number().int().openapi({ example: 0 }),
+    completedAt: z.string().datetime().nullable().openapi({ example: null }),
+    createdAt: z.string().datetime().openapi({ example: "2025-04-12T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-04-12T09:00:00Z" }),
+  })
+  .openapi("WorkOrderTask");
+
+export const WorkOrderTasksResponseSchema = z
+  .object({
+    tasks: z.array(WorkOrderTaskSchema),
+  })
+  .openapi("WorkOrderTasksResponse");
+
+export const WorkOrderTaskStatusUpdateResponseSchema = z
+  .object({
+    task: WorkOrderTaskSchema,
+    readiness: CompletionReadinessSchema,
+  })
+  .openapi("WorkOrderTaskStatusUpdateResponse");
+
+export const WorkTemplateTaskSchema = z
+  .object({
+    id: z.string().openapi({ example: "tpl_task_1" }),
+    title: z.string().openapi({ example: "Inspect pump" }),
+    description: z.string().nullable().openapi({ example: "Check pump pressure" }),
+    sortOrder: z.number().int().openapi({ example: 0 }),
+  })
+  .openapi("WorkTemplateTask");
+
+export const WorkTemplateSkillRequirementSchema = z
+  .object({
+    id: z.string().openapi({ example: "tpl_skill_1" }),
+    skillId: z.string().openapi({ example: "skill_1" }),
+    quantity: z.number().int().openapi({ example: 1 }),
+    notes: z.string().nullable().openapi({ example: "Requires certified tech" }),
+    skill: z
+      .object({ id: z.string().openapi({ example: "skill_1" }), name: z.string() })
+      .openapi("WorkTemplateSkill"),
+  })
+  .openapi("WorkTemplateSkillRequirement");
+
+export const WorkTemplateListItemSchema = z
+  .object({
+    id: z.string().openapi({ example: "tpl_1" }),
+    name: z.string().openapi({ example: "Spring Cleanup" }),
+    description: z.string().nullable().openapi({ example: "Seasonal cleanup" }),
+    isActive: z.boolean().openapi({ example: true }),
+    taskCount: z.number().int().openapi({ example: 4 }),
+    createdAt: z.string().datetime().openapi({ example: "2025-04-12T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-04-12T09:00:00Z" }),
+  })
+  .openapi("WorkTemplateListItem");
+
+export const WorkTemplatesListResponseSchema = z
+  .object({
+    items: z.array(WorkTemplateListItemSchema),
+    page: z.number().int(),
+    pageSize: z.number().int(),
+    total: z.number().int(),
+  })
+  .openapi("WorkTemplatesListResponse");
+
+export const WorkTemplateDetailSchema = z
+  .object({
+    id: z.string().openapi({ example: "tpl_1" }),
+    name: z.string().openapi({ example: "Spring Cleanup" }),
+    description: z.string().nullable().openapi({ example: "Seasonal cleanup" }),
+    isActive: z.boolean().openapi({ example: true }),
+    createdAt: z.string().datetime().openapi({ example: "2025-04-12T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-04-12T09:00:00Z" }),
+    tasks: z.array(WorkTemplateTaskSchema),
+    skillRequirements: z.array(WorkTemplateSkillRequirementSchema),
+  })
+  .openapi("WorkTemplateDetail");
+
+export const WorkTemplateResponseSchema = z
+  .object({
+    template: WorkTemplateDetailSchema,
+  })
+  .openapi("WorkTemplateResponse");
+
 export const CustomersListQueryParamsSchema = CustomersListQuerySchema.openapi(
   "CustomersListQueryParams",
 );
@@ -320,6 +454,32 @@ export const WorkOrdersListQueryParamsSchema = WorkOrdersListQuerySchema.openapi
   "WorkOrdersListQueryParams",
 );
 export const WorkOrderIdParamsOpenApiSchema = WorkOrderIdParamsSchema.openapi("WorkOrderIdParams");
+
+export const WorkTemplatesListQueryParamsSchema = WorkTemplatesListQuerySchema.openapi(
+  "WorkTemplatesListQueryParams",
+);
+export const WorkTemplateIdParamsOpenApiSchema =
+  WorkTemplateIdParamsSchema.openapi("WorkTemplateIdParams");
+export const WorkTemplateCreateRequestSchema = WorkTemplateCreateSchema.openapi(
+  "WorkTemplateCreateRequest",
+);
+export const WorkTemplateUpdateRequestSchema = WorkTemplateUpdateSchema.openapi(
+  "WorkTemplateUpdateRequest",
+);
+
+export const WorkOrderIncidentCreateRequestSchema = WorkOrderIncidentCreateSchema.openapi(
+  "WorkOrderIncidentCreateRequest",
+);
+export const WorkOrderIncidentParamsOpenApiSchema =
+  WorkOrderIncidentParamsSchema.openapi("WorkOrderIncidentParams");
+export const WorkOrderTaskInstantiateRequestSchema = WorkOrderTaskInstantiateSchema.openapi(
+  "WorkOrderTaskInstantiateRequest",
+);
+export const WorkOrderTaskParamsOpenApiSchema =
+  WorkOrderTaskParamsSchema.openapi("WorkOrderTaskParams");
+export const WorkOrderTaskStatusUpdateRequestSchema = WorkOrderTaskStatusUpdateSchema.openapi(
+  "WorkOrderTaskStatusUpdateRequest",
+);
 
 export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("CustomerListItem", CustomerListItemSchema);
@@ -336,10 +496,32 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("WorkOrderNote", WorkOrderNoteSchema);
   registry.register("WorkOrderLineItem", WorkOrderLineItemSchema);
   registry.register("WorkOrderDetailResponse", WorkOrderDetailResponseSchema);
+  registry.register("TaskStatus", TaskStatusSchema);
+  registry.register("CompletionReadiness", CompletionReadinessSchema);
+  registry.register("WorkOrderIncident", WorkOrderIncidentSchema);
+  registry.register("WorkOrderIncidentResponse", WorkOrderIncidentResponseSchema);
+  registry.register("WorkOrderTask", WorkOrderTaskSchema);
+  registry.register("WorkOrderTasksResponse", WorkOrderTasksResponseSchema);
+  registry.register("WorkOrderTaskStatusUpdateResponse", WorkOrderTaskStatusUpdateResponseSchema);
+  registry.register("WorkTemplateTask", WorkTemplateTaskSchema);
+  registry.register("WorkTemplateSkillRequirement", WorkTemplateSkillRequirementSchema);
+  registry.register("WorkTemplateListItem", WorkTemplateListItemSchema);
+  registry.register("WorkTemplatesListResponse", WorkTemplatesListResponseSchema);
+  registry.register("WorkTemplateDetail", WorkTemplateDetailSchema);
+  registry.register("WorkTemplateResponse", WorkTemplateResponseSchema);
 
   registry.register("CustomersListQueryParams", CustomersListQueryParamsSchema);
   registry.register("CustomerIdParams", CustomerIdParamsOpenApiSchema);
   registry.register("TechniciansListQueryParams", TechniciansListQueryParamsSchema);
   registry.register("WorkOrdersListQueryParams", WorkOrdersListQueryParamsSchema);
   registry.register("WorkOrderIdParams", WorkOrderIdParamsOpenApiSchema);
+  registry.register("WorkTemplatesListQueryParams", WorkTemplatesListQueryParamsSchema);
+  registry.register("WorkTemplateIdParams", WorkTemplateIdParamsOpenApiSchema);
+  registry.register("WorkTemplateCreateRequest", WorkTemplateCreateRequestSchema);
+  registry.register("WorkTemplateUpdateRequest", WorkTemplateUpdateRequestSchema);
+  registry.register("WorkOrderIncidentCreateRequest", WorkOrderIncidentCreateRequestSchema);
+  registry.register("WorkOrderIncidentParams", WorkOrderIncidentParamsOpenApiSchema);
+  registry.register("WorkOrderTaskInstantiateRequest", WorkOrderTaskInstantiateRequestSchema);
+  registry.register("WorkOrderTaskParams", WorkOrderTaskParamsOpenApiSchema);
+  registry.register("WorkOrderTaskStatusUpdateRequest", WorkOrderTaskStatusUpdateRequestSchema);
 }

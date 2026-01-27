@@ -2,8 +2,22 @@ import { Router } from "express";
 
 import { validateRequest } from "../../http/middleware/validate.js";
 
-import { WorkOrderIdParamsSchema, WorkOrdersListQuerySchema } from "./dto/workOrders.dto.js";
-import { getWorkOrderDetailHandler, listWorkOrdersHandler } from "./workOrders.controller.js";
+import {
+  WorkOrderIdParamsSchema,
+  WorkOrderIncidentCreateSchema,
+  WorkOrderIncidentParamsSchema,
+  WorkOrderTaskInstantiateSchema,
+  WorkOrderTaskParamsSchema,
+  WorkOrderTaskStatusUpdateSchema,
+  WorkOrdersListQuerySchema,
+} from "./dto/workOrders.dto.js";
+import {
+  addWorkOrderIncidentHandler,
+  getWorkOrderDetailHandler,
+  instantiateWorkOrderTasksHandler,
+  listWorkOrdersHandler,
+  updateWorkOrderTaskStatusHandler,
+} from "./workOrders.controller.js";
 
 export const workOrdersRoutes = Router();
 
@@ -21,4 +35,22 @@ workOrdersRoutes.get(
   "/:id",
   validateRequest({ params: WorkOrderIdParamsSchema }),
   getWorkOrderDetailHandler,
+);
+
+workOrdersRoutes.post(
+  "/:id/incidents",
+  validateRequest({ params: WorkOrderIdParamsSchema, body: WorkOrderIncidentCreateSchema }),
+  addWorkOrderIncidentHandler,
+);
+
+workOrdersRoutes.post(
+  "/:id/incidents/:incidentId/tasks/instantiate",
+  validateRequest({ params: WorkOrderIncidentParamsSchema, body: WorkOrderTaskInstantiateSchema }),
+  instantiateWorkOrderTasksHandler,
+);
+
+workOrdersRoutes.patch(
+  "/:id/tasks/:taskId/status",
+  validateRequest({ params: WorkOrderTaskParamsSchema, body: WorkOrderTaskStatusUpdateSchema }),
+  updateWorkOrderTaskStatusHandler,
 );
