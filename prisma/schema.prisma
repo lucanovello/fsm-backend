@@ -104,6 +104,11 @@ model Organization {
   crews              Crew[]
   crewMembers        CrewMember[]
   workOrders         WorkOrder[]
+  workTemplates      WorkTemplate[]
+  templateTasks      TemplateTask[]
+  templateSkillRequirements TemplateSkillRequirement[]
+  workOrderIncidents WorkOrderIncident[]
+  workOrderTasks     WorkOrderTask[]
   workNotes          WorkNote[]
   workOrderLineItems WorkOrderLineItem[]
   bookingStatuses    BookingStatus[]
@@ -200,6 +205,12 @@ enum WorkOrderPriority {
   URGENT
 }
 
+enum TaskStatus {
+  TODO
+  DONE
+  SKIPPED
+}
+
 model Customer {
   id                  String            @id @default(cuid())
   org                 Organization?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
@@ -287,6 +298,7 @@ model Skill {
   name        String
   description String?
   resources   ResourceSkill[]
+  templateSkillRequirements TemplateSkillRequirement[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -360,6 +372,7 @@ model WorkOrder {
   scheduledEnd         DateTime?
   actualStart          DateTime?
   actualEnd            DateTime?
+  incidents            WorkOrderIncident[]
   notes                WorkNote[]
   lineItems            WorkOrderLineItem[]
   bookings             Booking[]
@@ -369,6 +382,97 @@ model WorkOrder {
   @@index([serviceLocationId])
   @@index([assignedTechnicianId])
   @@index([orgId])
+}
+
+model WorkTemplate {
+  id          String   @id @default(cuid())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  tasks       TemplateTask[]
+  skillRequirements TemplateSkillRequirement[]
+  incidents   WorkOrderIncident[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+model TemplateTask {
+  id          String   @id @default(cuid())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  template    WorkTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId  String
+  title       String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([templateId])
+}
+
+model TemplateSkillRequirement {
+  id          String   @id @default(cuid())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  template    WorkTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  templateId  String
+  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Restrict)
+  skillId     String
+  quantity    Int      @default(1)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([orgId, templateId, skillId])
+  @@index([orgId])
+  @@index([templateId])
+  @@index([skillId])
+}
+
+model WorkOrderIncident {
+  id          String   @id @default(cuid())
+  org         Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId       String?
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  workOrderId String
+  template    WorkTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  templateId  String?
+  title       String
+  description String?
+  sortOrder   Int      @default(0)
+  tasks       WorkOrderTask[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([workOrderId])
+  @@index([templateId])
+}
+
+model WorkOrderTask {
+  id          String   @id @default(cuid())
+  org         Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId       String?
+  incident    WorkOrderIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  incidentId  String
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  sortOrder   Int      @default(0)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([incidentId])
+  @@index([status])
 }
 
 model BookingStatus {

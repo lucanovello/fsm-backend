@@ -1,9 +1,14 @@
-import { WorkOrderStatus, type Prisma, type WorkOrderPriority } from "@prisma/client";
+import { TaskStatus, WorkOrderStatus, type Prisma, type WorkOrderPriority } from "@prisma/client";
 
 import { prisma } from "../../infrastructure/db/prisma.js";
 import { AppError } from "../../shared/errors.js";
 
-import type { WorkOrdersListQuery } from "./dto/workOrders.dto.js";
+import type {
+  WorkOrderIncidentCreateInput,
+  WorkOrderTaskInstantiateInput,
+  WorkOrderTaskStatusUpdateInput,
+  WorkOrdersListQuery,
+} from "./dto/workOrders.dto.js";
 
 type DateRange = { gte: Date; lt: Date };
 
@@ -54,6 +59,32 @@ type WorkOrderDetail = {
     unitPriceCents: number;
   }>;
 };
+
+type CompletionReadiness = {
+  total: number;
+  done: number;
+  skipped: number;
+  pending: number;
+  isReady: boolean;
+};
+
+const workOrderNotFound = () =>
+  new AppError("Work order not found", 404, { code: "WORK_ORDER_NOT_FOUND" });
+
+const templateNotFound = () =>
+  new AppError("Work template not found", 404, { code: "WORK_TEMPLATE_NOT_FOUND" });
+
+const incidentNotFound = () =>
+  new AppError("Work order incident not found", 404, { code: "WORK_ORDER_INCIDENT_NOT_FOUND" });
+
+const incidentTitleRequired = () =>
+  new AppError("Incident title required", 400, { code: "INCIDENT_TITLE_REQUIRED" });
+
+const tasksAlreadyInstantiated = () =>
+  new AppError("Tasks already instantiated", 409, { code: "TASKS_ALREADY_INSTANTIATED" });
+
+const taskNotFound = () =>
+  new AppError("Work order task not found", 404, { code: "WORK_ORDER_TASK_NOT_FOUND" });
 
 function parseStatuses(status?: string): WorkOrderStatus[] | undefined {
   if (!status) return undefined;
@@ -203,7 +234,7 @@ export async function getWorkOrderDetail(id: string): Promise<WorkOrderDetail> {
   });
 
   if (!wo) {
-    throw new AppError("Work order not found", 404, { code: "WORK_ORDER_NOT_FOUND" });
+    throw workOrderNotFound();
   }
 
   return {
@@ -238,4 +269,222 @@ export async function getWorkOrderDetail(id: string): Promise<WorkOrderDetail> {
     })),
     lineItems: wo.lineItems,
   };
+}
+
+const ensureWorkOrder = async (orgId: string, workOrderId: string) => {
+  const workOrder = await prisma.workOrder.findFirst({
+    where: { id: workOrderId, orgId },
+    select: { id: true },
+  });
+
+  if (!workOrder) {
+    throw workOrderNotFound();
+  }
+
+  return workOrder;
+};
+
+const ensureTemplate = async (orgId: string, templateId: string) => {
+  const template = await prisma.workTemplate.findFirst({
+    where: { id: templateId, orgId },
+    select: { id: true, name: true, description: true },
+  });
+
+  if (!template) {
+    throw templateNotFound();
+  }
+
+  return template;
+};
+
+const ensureIncident = async (orgId: string, workOrderId: string, incidentId: string) => {
+  const incident = await prisma.workOrderIncident.findFirst({
+    where: { id: incidentId, workOrderId, orgId },
+    select: { id: true, templateId: true },
+  });
+
+  if (!incident) {
+    throw incidentNotFound();
+  }
+
+  return incident;
+};
+
+export function computeCompletionReadiness(
+  tasks: Array<{ status: TaskStatus }>,
+): CompletionReadiness {
+  const total = tasks.length;
+  const done = tasks.filter((task) => task.status === TaskStatus.DONE).length;
+  const skipped = tasks.filter((task) => task.status === TaskStatus.SKIPPED).length;
+  const pending = total - done - skipped;
+  const isReady = total > 0 && pending === 0;
+
+  return { total, done, skipped, pending, isReady };
+}
+
+export async function addWorkOrderIncident(
+  orgId: string,
+  workOrderId: string,
+  input: WorkOrderIncidentCreateInput,
+) {
+  await ensureWorkOrder(orgId, workOrderId);
+
+  const template = input.templateId ? await ensureTemplate(orgId, input.templateId) : null;
+  const title = input.title ?? template?.name;
+  const description = input.description ?? template?.description ?? null;
+
+  if (!title) {
+    throw incidentTitleRequired();
+  }
+
+  let sortOrder = input.sortOrder;
+  if (sortOrder === undefined) {
+    const last = await prisma.workOrderIncident.findFirst({
+      where: { orgId, workOrderId },
+      orderBy: [{ sortOrder: "desc" }, { createdAt: "desc" }],
+      select: { sortOrder: true },
+    });
+    sortOrder = (last?.sortOrder ?? -1) + 1;
+  }
+
+  const incident = await prisma.workOrderIncident.create({
+    data: {
+      orgId,
+      workOrderId,
+      templateId: template?.id ?? null,
+      title,
+      description,
+      sortOrder,
+    },
+    select: {
+      id: true,
+      workOrderId: true,
+      templateId: true,
+      title: true,
+      description: true,
+      sortOrder: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return { incident };
+}
+
+export async function instantiateWorkOrderTasks(
+  orgId: string,
+  workOrderId: string,
+  incidentId: string,
+  input: WorkOrderTaskInstantiateInput,
+) {
+  await ensureWorkOrder(orgId, workOrderId);
+  const incident = await ensureIncident(orgId, workOrderId, incidentId);
+
+  const templateId = input.templateId ?? incident.templateId;
+  if (!templateId) {
+    throw templateNotFound();
+  }
+
+  const existingCount = await prisma.workOrderTask.count({
+    where: { orgId, incidentId },
+  });
+
+  if (existingCount > 0) {
+    throw tasksAlreadyInstantiated();
+  }
+
+  const template = await prisma.workTemplate.findFirst({
+    where: { id: templateId, orgId },
+    select: {
+      id: true,
+      tasks: {
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        select: { title: true, description: true, sortOrder: true },
+      },
+    },
+  });
+
+  if (!template) {
+    throw templateNotFound();
+  }
+
+  if (template.tasks.length > 0) {
+    await prisma.workOrderTask.createMany({
+      data: template.tasks.map((task) => ({
+        orgId,
+        incidentId,
+        title: task.title,
+        description: task.description ?? null,
+        status: TaskStatus.TODO,
+        sortOrder: task.sortOrder,
+      })),
+    });
+  }
+
+  const tasks = await prisma.workOrderTask.findMany({
+    where: { orgId, incidentId },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: {
+      id: true,
+      incidentId: true,
+      title: true,
+      description: true,
+      status: true,
+      sortOrder: true,
+      completedAt: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return { tasks };
+}
+
+export async function updateWorkOrderTaskStatus(
+  orgId: string,
+  workOrderId: string,
+  taskId: string,
+  input: WorkOrderTaskStatusUpdateInput,
+) {
+  await ensureWorkOrder(orgId, workOrderId);
+
+  const task = await prisma.workOrderTask.findFirst({
+    where: { id: taskId, orgId, incident: { workOrderId } },
+    select: { id: true, status: true },
+  });
+
+  if (!task) {
+    throw taskNotFound();
+  }
+
+  const completedAt = input.status === TaskStatus.DONE ? new Date() : null;
+
+  const updated = await prisma.workOrderTask.update({
+    where: { id: task.id },
+    data: { status: input.status, completedAt },
+    select: {
+      id: true,
+      incidentId: true,
+      title: true,
+      description: true,
+      status: true,
+      sortOrder: true,
+      completedAt: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  const readiness = await getWorkOrderCompletionReadiness(orgId, workOrderId);
+
+  return { task: updated, readiness };
+}
+
+export async function getWorkOrderCompletionReadiness(orgId: string, workOrderId: string) {
+  const tasks = await prisma.workOrderTask.findMany({
+    where: { orgId, incident: { workOrderId } },
+    select: { status: true },
+  });
+
+  return computeCompletionReadiness(tasks);
 }
