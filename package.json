@@ -26,6 +26,7 @@
     "pretest:cov": "node scripts/stamp-build-meta.mjs",
     "pretypecheck": "node scripts/stamp-build-meta.mjs",
     "secrets:scan": "node scripts/scan-secrets.mjs",
+    "scheduling:backfill": "tsx scripts/scheduling/backfill-bookings.ts",
     "sessions:cleanup": "tsx scripts/cleanup-sessions.ts",
     "setup:dev": "docker compose up -d db && npx prisma generate",
     "start": "npm run start:prod",
