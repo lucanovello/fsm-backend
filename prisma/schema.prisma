@@ -106,6 +106,12 @@ model Organization {
   workOrders         WorkOrder[]
   workNotes          WorkNote[]
   workOrderLineItems WorkOrderLineItem[]
+  bookingStatuses    BookingStatus[]
+  bookings           Booking[]
+  bookingStatusEvents BookingStatusEvent[]
+  resourceRequirements ResourceRequirement[]
+  routes             Route[]
+  routeStops         RouteStop[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -119,6 +125,7 @@ model OrgMember {
   role      OrgMemberRole  @default(MEMBER)
   roles     MemberRole[]
   serviceResources ServiceResource[]
+  bookingStatusEvents BookingStatusEvent[]
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
@@ -310,6 +317,8 @@ model Crew {
   name        String
   description String?
   members     CrewMember[]
+  bookings    Booking[]
+  routes      Route[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -353,13 +362,126 @@ model WorkOrder {
   actualEnd            DateTime?
   notes                WorkNote[]
   lineItems            WorkOrderLineItem[]
+  bookings             Booking[]
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
-
   @@index([customerId])
   @@index([serviceLocationId])
   @@index([assignedTechnicianId])
   @@index([orgId])
+}
+
+model BookingStatus {
+  id          String              @id @default(cuid())
+  org         Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  name        String
+  description String?
+  isDefault   Boolean             @default(false)
+  isActive    Boolean             @default(true)
+  sortOrder   Int                 @default(0)
+  bookings    Booking[]
+  events      BookingStatusEvent[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+model Booking {
+  id             String              @id @default(cuid())
+  org            Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  workOrder      WorkOrder?          @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  workOrderId    String?
+  crew           Crew                @relation(fields: [crewId], references: [id], onDelete: Restrict)
+  crewId         String
+  status         BookingStatus       @relation(fields: [statusId], references: [id], onDelete: Restrict)
+  statusId       String
+  scheduledStart DateTime?
+  scheduledEnd   DateTime?
+  requirements   ResourceRequirement[]
+  statusEvents   BookingStatusEvent[]
+  routeStops     RouteStop[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@unique([orgId, workOrderId])
+  @@index([orgId])
+  @@index([workOrderId])
+  @@index([crewId])
+  @@index([statusId])
+}
+
+model ResourceRequirement {
+  id           String       @id @default(cuid())
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  booking      Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId    String
+  resourceType String
+  quantity     Int          @default(1)
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([orgId])
+  @@index([bookingId])
+  @@unique([orgId, bookingId, resourceType])
+}
+
+model BookingStatusEvent {
+  id           String         @id @default(cuid())
+  org          Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  booking      Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId    String
+  status       BookingStatus  @relation(fields: [statusId], references: [id], onDelete: Restrict)
+  statusId     String
+  actor        OrgMember?     @relation(fields: [orgMemberId], references: [id], onDelete: SetNull)
+  orgMemberId  String?
+  createdAt    DateTime       @default(now())
+
+  @@index([orgId])
+  @@index([bookingId])
+  @@index([statusId])
+  @@index([orgMemberId])
+}
+
+model Route {
+  id        String       @id @default(cuid())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  crew      Crew         @relation(fields: [crewId], references: [id], onDelete: Restrict)
+  crewId    String
+  routeDate DateTime
+  stops     RouteStop[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([orgId, crewId, routeDate])
+  @@index([orgId])
+  @@index([crewId])
+}
+
+model RouteStop {
+  id        String       @id @default(cuid())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  route     Route        @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  routeId   String
+  booking   Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId String
+  position  Int
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([orgId, routeId, position])
+  @@unique([orgId, bookingId])
+  @@index([orgId])
+  @@index([routeId])
+  @@index([bookingId])
 }
 
 model WorkNote {

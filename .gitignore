@@ -154,3 +154,4 @@ undefined/
 temp/
 .tmp/
 .cache/
+.github/copilot-instructions.md

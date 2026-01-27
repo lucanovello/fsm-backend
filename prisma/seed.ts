@@ -25,6 +25,12 @@ async function hashPassword(plain: string): Promise<string> {
 }
 
 async function resetDomainTables(db: PrismaClient) {
+  await db.routeStop.deleteMany();
+  await db.bookingStatusEvent.deleteMany();
+  await db.resourceRequirement.deleteMany();
+  await db.booking.deleteMany();
+  await db.route.deleteMany();
+  await db.bookingStatus.deleteMany();
   await db.crewMember.deleteMany();
   await db.resourceSkill.deleteMany();
   await db.crew.deleteMany();
@@ -37,6 +43,49 @@ async function resetDomainTables(db: PrismaClient) {
   await db.technician.deleteMany();
   await db.customer.deleteMany();
   console.log("Domain tables reset.");
+}
+
+const DEFAULT_BOOKING_STATUSES = [
+  {
+    name: "Scheduled",
+    description: "Queued and ready for dispatch.",
+    sortOrder: 10,
+    isDefault: true,
+  },
+  { name: "In Progress", description: "Crew is actively working.", sortOrder: 20 },
+  { name: "Completed", description: "Work has been completed.", sortOrder: 30 },
+  { name: "Cancelled", description: "Booking was cancelled.", sortOrder: 40 },
+];
+
+async function seedBookingStatuses(db: PrismaClient) {
+  const orgs = await db.organization.findMany({ select: { id: true } });
+
+  for (const org of orgs) {
+    for (const status of DEFAULT_BOOKING_STATUSES) {
+      await db.bookingStatus.upsert({
+        where: {
+          orgId_name: {
+            orgId: org.id,
+            name: status.name,
+          },
+        },
+        update: {
+          description: status.description,
+          isActive: true,
+          sortOrder: status.sortOrder,
+          isDefault: status.isDefault ?? false,
+        },
+        create: {
+          orgId: org.id,
+          name: status.name,
+          description: status.description,
+          isActive: true,
+          sortOrder: status.sortOrder,
+          isDefault: status.isDefault ?? false,
+        },
+      });
+    }
+  }
 }
 
 type SeedUsers = {
@@ -419,6 +468,7 @@ async function main() {
   const customers = await seedCustomersAndLocations(prisma);
   const { workOrderIds } = await seedWorkOrders(prisma, users, customers);
   await seedRbac(prisma);
+  await seedBookingStatuses(prisma);
 
   console.log("Seed complete");
   console.log({
