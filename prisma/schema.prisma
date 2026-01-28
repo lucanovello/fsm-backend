@@ -124,6 +124,9 @@ model Organization {
   invoices           Invoice[]
   invoiceWorkOrders  InvoiceWorkOrder[]
   invoiceLines       InvoiceLine[]
+  integrationConnections IntegrationConnection[]
+  externalMappings  ExternalMapping[]
+  syncJobs           SyncJob[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -223,6 +226,29 @@ enum InvoiceStatus {
   ISSUED
   PAID
   VOID
+}
+
+enum IntegrationProvider {
+  QUICKBOOKS
+}
+
+enum IntegrationConnectionStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+enum SyncJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum SyncJobType {
+  WEBHOOK
+  MANUAL
 }
 
 model Customer {
@@ -766,4 +792,75 @@ model GeneratedOccurrence {
   @@index([orgId])
   @@index([contractId])
   @@index([startsAt])
+}
+
+model IntegrationConnection {
+  id                     String                      @id @default(cuid())
+  org                    Organization                @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId                  String
+  provider               IntegrationProvider
+  realmId                String?
+  status                 IntegrationConnectionStatus @default(PENDING)
+  isActive               Boolean                     @default(false)
+  accessTokenCiphertext  String?
+  refreshTokenCiphertext String?
+  accessTokenExpiresAt   DateTime?
+  refreshTokenExpiresAt  DateTime?
+  scopes                 String?
+  tokenType              String?
+  oauthStateHash         String?
+  oauthStateExpiresAt    DateTime?
+  lastSyncAt             DateTime?
+  syncJobs               SyncJob[]
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
+
+  @@unique([orgId, provider, realmId])
+  @@index([orgId])
+  @@index([provider])
+  @@index([realmId])
+  @@index([status])
+}
+
+model ExternalMapping {
+  id         String               @id @default(cuid())
+  org        Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  provider   IntegrationProvider
+  entityType String
+  entityId   String
+  externalId String
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@unique([orgId, provider, entityType, entityId])
+  @@unique([orgId, provider, entityType, externalId])
+  @@index([orgId])
+  @@index([provider])
+  @@index([entityType])
+}
+
+model SyncJob {
+  id             String               @id @default(cuid())
+  org            Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  provider       IntegrationProvider
+  connection     IntegrationConnection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  connectionId   String?
+  type           SyncJobType
+  status         SyncJobStatus          @default(PENDING)
+  payload        Json
+  attempts       Int                  @default(0)
+  scheduledAt    DateTime?            @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  lastError      String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([orgId])
+  @@index([provider])
+  @@index([status])
+  @@index([type])
+  @@index([connectionId])
 }

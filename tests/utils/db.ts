@@ -56,6 +56,9 @@ export const ensureDbReady = async (): Promise<void> => {
  */
 export const resetDb = async (): Promise<void> => {
   await prisma.$transaction([
+    prisma.syncJob.deleteMany(),
+    prisma.externalMapping.deleteMany(),
+    prisma.integrationConnection.deleteMany(),
     prisma.memberRole.deleteMany(),
     prisma.rolePermission.deleteMany(),
     prisma.orgRole.deleteMany(),

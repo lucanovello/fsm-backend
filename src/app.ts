@@ -22,7 +22,9 @@ import { notFound } from "./http/middleware/notFound.js";
 import { registerSecurity, type SecurityTeardown } from "./http/middleware/security.js";
 import { apiRoutes } from "./http/routes/api.routes.js";
 import { auth as authRoutes } from "./http/routes/auth.routes.js";
+import { integrationsPublicRoutes } from "./http/routes/integrations.routes.js";
 import { protectedRoutes } from "./http/routes/protected.routes.js";
+import { webhooksRoutes } from "./http/routes/webhooks.routes.js";
 import { prisma } from "./infrastructure/db/prisma.js";
 import { getRateLimitRedisHealth } from "./infrastructure/rate-limit/rateLimitHealth.js";
 import { isShuttingDown } from "./lifecycle/state.js";
@@ -191,7 +193,13 @@ const pinoHttpFn = pinoHttp as unknown as (opts: typeof pinoOptions) => RequestH
 app.use(pinoHttpFn(pinoOptions));
 app.use(echoRequestId);
 
-const jsonParser = express.json({ limit: cfg.REQUEST_BODY_LIMIT }) as unknown as RequestHandler;
+const jsonParser = express.json({
+  limit: cfg.REQUEST_BODY_LIMIT,
+  verify: (req, _res, buf) => {
+    const expressReq = req as Request;
+    expressReq.rawBody = Buffer.from(buf);
+  },
+}) as unknown as RequestHandler;
 app.use(jsonParser);
 
 if (cfg.responseCompression.enabled) {
@@ -289,6 +297,8 @@ app.get("/version", (_req: Request, res: Response) => {
 // Feature routes
 app.use("/api", apiRoutes);
 app.use("/auth", authRoutes);
+app.use("/integrations", integrationsPublicRoutes);
+app.use("/webhooks", webhooksRoutes);
 app.use("/protected", protectedRoutes);
 
 // API docs

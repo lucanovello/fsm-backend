@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { crewsRoutes } from "../../modules/crews/crews.routes.js";
 import { customersRoutes } from "../../modules/customers/customers.routes.js";
+import { integrationsRoutes } from "../../modules/integrations/integrations.routes.js";
 import { invoicesRoutes } from "../../modules/invoices/invoices.routes.js";
 import { organizationsRoutes } from "../../modules/organizations/organizations.routes.js";
 import { schedulingRoutes } from "../../modules/scheduling/scheduling.routes.js";
@@ -23,6 +24,7 @@ apiRoutes.use("/customers", customersRoutes);
 apiRoutes.use("/service-resources", serviceResourcesRoutes);
 apiRoutes.use("/service-contracts", serviceContractsRoutes);
 apiRoutes.use("/invoices", invoicesRoutes);
+apiRoutes.use("/integrations", integrationsRoutes);
 apiRoutes.use("/crews", crewsRoutes);
 apiRoutes.use("/technicians", techniciansRoutes);
 apiRoutes.use("/work-orders", workOrdersRoutes);
