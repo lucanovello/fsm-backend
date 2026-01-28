@@ -36,6 +36,17 @@ import {
   ServiceContractUpdateRequestSchema,
   ServiceContractsListQueryParamsSchema,
   ServiceContractsListResponseSchema,
+  InvoiceCreateRequestSchema,
+  InvoiceDeleteResponseSchema,
+  InvoiceIdParamsOpenApiSchema,
+  InvoiceLineCreateRequestSchema,
+  InvoiceLineIdParamsOpenApiSchema,
+  InvoiceLineResponseSchema,
+  InvoiceLineUpdateRequestSchema,
+  InvoiceResponseSchema,
+  InvoiceStatusUpdateRequestSchema,
+  InvoiceWorkOrderIdParamsOpenApiSchema,
+  InvoiceWorkOrdersAddRequestSchema,
 } from "../components/fsm.schemas.js";
 import { Tags } from "../tags.js";
 import { z } from "../zod.js";
@@ -275,6 +286,222 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
       404: errorResponse("Work order not found", {
         message: "Work order not found",
         code: "WORK_ORDER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/invoices",
+    summary: "Create invoice",
+    description: "Create an invoice for a customer.",
+    tags: [Tags.Invoices],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: {
+        content: { "application/json": { schema: InvoiceCreateRequestSchema } },
+      },
+    },
+    responses: {
+      201: {
+        description: "Invoice created.",
+        content: { "application/json": { schema: InvoiceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Customer not found", {
+        message: "Customer not found",
+        code: "CUSTOMER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/invoices/{id}",
+    summary: "Get invoice",
+    description: "Fetch an invoice with linked work orders and lines.",
+    tags: [Tags.Invoices],
+    security: [{ BearerAuth: [] }],
+    request: { params: InvoiceIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Invoice found.",
+        content: { "application/json": { schema: InvoiceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Invoice not found", {
+        message: "Invoice not found",
+        code: "INVOICE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/invoices/{id}/work-orders",
+    summary: "Add invoice work orders",
+    description: "Attach work orders to a draft invoice.",
+    tags: [Tags.Invoices],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: InvoiceIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: InvoiceWorkOrdersAddRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Work orders added.",
+        content: { "application/json": { schema: InvoiceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Invoice not found", {
+        message: "Invoice not found",
+        code: "INVOICE_NOT_FOUND",
+      }),
+      409: errorResponse("Invoice must be in draft", {
+        message: "Invoice must be in draft",
+        code: "INVOICE_NOT_DRAFT",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/invoices/{id}/work-orders/{workOrderId}",
+    summary: "Remove invoice work order",
+    description: "Remove a work order from a draft invoice.",
+    tags: [Tags.Invoices],
+    security: [{ BearerAuth: [] }],
+    request: { params: InvoiceWorkOrderIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Work order removed.",
+        content: { "application/json": { schema: InvoiceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Invoice work order not found", {
+        message: "Invoice work order not found",
+        code: "INVOICE_WORK_ORDER_NOT_FOUND",
+      }),
+      409: errorResponse("Invoice must be in draft", {
+        message: "Invoice must be in draft",
+        code: "INVOICE_NOT_DRAFT",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/invoices/{id}/lines",
+    summary: "Create invoice line",
+    description: "Add a line to a draft invoice.",
+    tags: [Tags.Invoices],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: InvoiceIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: InvoiceLineCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Line created.",
+        content: { "application/json": { schema: InvoiceLineResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Invoice not found", {
+        message: "Invoice not found",
+        code: "INVOICE_NOT_FOUND",
+      }),
+      409: errorResponse("Invoice must be in draft", {
+        message: "Invoice must be in draft",
+        code: "INVOICE_NOT_DRAFT",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/invoices/{id}/lines/{lineId}",
+    summary: "Update invoice line",
+    description: "Update a line on a draft invoice.",
+    tags: [Tags.Invoices],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: InvoiceLineIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: InvoiceLineUpdateRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Line updated.",
+        content: { "application/json": { schema: InvoiceLineResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Invoice line not found", {
+        message: "Invoice line not found",
+        code: "INVOICE_LINE_NOT_FOUND",
+      }),
+      409: errorResponse("Invoice must be in draft", {
+        message: "Invoice must be in draft",
+        code: "INVOICE_NOT_DRAFT",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/invoices/{id}/lines/{lineId}",
+    summary: "Delete invoice line",
+    description: "Delete a line from a draft invoice.",
+    tags: [Tags.Invoices],
+    security: [{ BearerAuth: [] }],
+    request: { params: InvoiceLineIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Line deleted.",
+        content: { "application/json": { schema: InvoiceDeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Invoice line not found", {
+        message: "Invoice line not found",
+        code: "INVOICE_LINE_NOT_FOUND",
+      }),
+      409: errorResponse("Invoice must be in draft", {
+        message: "Invoice must be in draft",
+        code: "INVOICE_NOT_DRAFT",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/invoices/{id}/status",
+    summary: "Update invoice status",
+    description: "Transition invoice status (draft/issued/paid/void).",
+    tags: [Tags.Invoices],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: InvoiceIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: InvoiceStatusUpdateRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Invoice updated.",
+        content: { "application/json": { schema: InvoiceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Invoice not found", {
+        message: "Invoice not found",
+        code: "INVOICE_NOT_FOUND",
+      }),
+      409: errorResponse("Invalid invoice status transition", {
+        message: "Invalid invoice status transition",
+        code: "INVOICE_STATUS_INVALID_TRANSITION",
       }),
     },
   });

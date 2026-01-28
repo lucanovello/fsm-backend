@@ -3,6 +3,17 @@ import {
   CustomersListQuerySchema,
 } from "../../modules/customers/dto/customers.dto.js";
 import {
+  InvoiceCreateSchema,
+  InvoiceIdParamsSchema,
+  InvoiceLineIdParamsSchema,
+  InvoiceLineInputSchema,
+  InvoiceLineUpdateSchema,
+  InvoiceStatusSchema as InvoiceStatusEnumSchema,
+  InvoiceStatusUpdateSchema,
+  InvoiceWorkOrderIdParamsSchema,
+  InvoiceWorkOrdersAddSchema,
+} from "../../modules/invoices/dto/invoices.dto.js";
+import {
   ServiceContractCreateSchema,
   ServiceContractIdParamsSchema,
   ServiceContractMaterializeSchema,
@@ -80,6 +91,10 @@ export const WorkOrderPrioritySchema = z
 export const TaskStatusSchema = z
   .enum(["TODO", "DONE", "SKIPPED"])
   .openapi("TaskStatus", { example: "TODO" });
+
+export const InvoiceStatusSchema = InvoiceStatusEnumSchema.openapi("InvoiceStatus", {
+  example: "DRAFT",
+});
 
 export const CustomerRecentWorkOrderSchema = z
   .object({
@@ -553,6 +568,69 @@ export const ServiceContractOccurrencesResponseSchema = z
   })
   .openapi("ServiceContractOccurrencesResponse");
 
+export const InvoiceCustomerSchema = z
+  .object({
+    id: z.string().openapi({ example: "cust_1" }),
+    name: z.string().openapi({ example: "Acme Corp" }),
+  })
+  .openapi("InvoiceCustomer");
+
+export const InvoiceWorkOrderSchema = z
+  .object({
+    id: z.string().openapi({ example: "iwo_1" }),
+    workOrder: z
+      .object({
+        id: z.string().openapi({ example: "wo_1" }),
+        summary: z.string().openapi({ example: "Spring cleanup & inspection" }),
+      })
+      .openapi("InvoiceWorkOrderSummary"),
+  })
+  .openapi("InvoiceWorkOrder");
+
+export const InvoiceLineSchema = z
+  .object({
+    id: z.string().openapi({ example: "line_1" }),
+    description: z.string().openapi({ example: "Seasonal service" }),
+    quantity: z.number().int().openapi({ example: 1 }),
+    unitPriceCents: z.number().int().nullable().openapi({ example: 12500 }),
+  })
+  .openapi("InvoiceLine");
+
+export const InvoiceDetailSchema = z
+  .object({
+    id: z.string().openapi({ example: "inv_1" }),
+    status: InvoiceStatusSchema,
+    customer: InvoiceCustomerSchema,
+    dueDate: z.string().datetime().nullable().openapi({ example: "2025-02-15T00:00:00Z" }),
+    memo: z.string().nullable().openapi({ example: "Thanks for your business." }),
+    issuedAt: z.string().datetime().nullable().openapi({ example: null }),
+    paidAt: z.string().datetime().nullable().openapi({ example: null }),
+    voidedAt: z.string().datetime().nullable().openapi({ example: null }),
+    workOrders: z.array(InvoiceWorkOrderSchema),
+    lines: z.array(InvoiceLineSchema),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-01T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-01T09:00:00Z" }),
+  })
+  .openapi("InvoiceDetail");
+
+export const InvoiceResponseSchema = z
+  .object({
+    invoice: InvoiceDetailSchema,
+  })
+  .openapi("InvoiceResponse");
+
+export const InvoiceLineResponseSchema = z
+  .object({
+    line: InvoiceLineSchema,
+  })
+  .openapi("InvoiceLineResponse");
+
+export const InvoiceDeleteResponseSchema = z
+  .object({
+    deleted: z.boolean().openapi({ example: true }),
+  })
+  .openapi("InvoiceDeleteResponse");
+
 export const CustomersListQueryParamsSchema = CustomersListQuerySchema.openapi(
   "CustomersListQueryParams",
 );
@@ -592,6 +670,26 @@ export const ServiceContractUpdateRequestSchema = ServiceContractUpdateSchema.op
 );
 export const ServiceContractMaterializeRequestSchema = ServiceContractMaterializeSchema.openapi(
   "ServiceContractMaterializeRequest",
+);
+
+export const InvoiceIdParamsOpenApiSchema = InvoiceIdParamsSchema.openapi("InvoiceIdParams");
+export const InvoiceLineIdParamsOpenApiSchema =
+  InvoiceLineIdParamsSchema.openapi("InvoiceLineIdParams");
+export const InvoiceWorkOrderIdParamsOpenApiSchema = InvoiceWorkOrderIdParamsSchema.openapi(
+  "InvoiceWorkOrderIdParams",
+);
+export const InvoiceCreateRequestSchema = InvoiceCreateSchema.openapi("InvoiceCreateRequest");
+export const InvoiceLineCreateRequestSchema = InvoiceLineInputSchema.openapi(
+  "InvoiceLineCreateRequest",
+);
+export const InvoiceLineUpdateRequestSchema = InvoiceLineUpdateSchema.openapi(
+  "InvoiceLineUpdateRequest",
+);
+export const InvoiceStatusUpdateRequestSchema = InvoiceStatusUpdateSchema.openapi(
+  "InvoiceStatusUpdateRequest",
+);
+export const InvoiceWorkOrdersAddRequestSchema = InvoiceWorkOrdersAddSchema.openapi(
+  "InvoiceWorkOrdersAddRequest",
 );
 
 export const WorkOrderIncidentCreateRequestSchema = WorkOrderIncidentCreateSchema.openapi(
@@ -647,6 +745,14 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("ServiceContractResponse", ServiceContractResponseSchema);
   registry.register("GeneratedOccurrence", GeneratedOccurrenceSchema);
   registry.register("ServiceContractOccurrencesResponse", ServiceContractOccurrencesResponseSchema);
+  registry.register("InvoiceStatus", InvoiceStatusSchema);
+  registry.register("InvoiceCustomer", InvoiceCustomerSchema);
+  registry.register("InvoiceWorkOrder", InvoiceWorkOrderSchema);
+  registry.register("InvoiceLine", InvoiceLineSchema);
+  registry.register("InvoiceDetail", InvoiceDetailSchema);
+  registry.register("InvoiceResponse", InvoiceResponseSchema);
+  registry.register("InvoiceLineResponse", InvoiceLineResponseSchema);
+  registry.register("InvoiceDeleteResponse", InvoiceDeleteResponseSchema);
 
   registry.register("CustomersListQueryParams", CustomersListQueryParamsSchema);
   registry.register("CustomerIdParams", CustomerIdParamsOpenApiSchema);
@@ -667,4 +773,12 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("WorkOrderTaskInstantiateRequest", WorkOrderTaskInstantiateRequestSchema);
   registry.register("WorkOrderTaskParams", WorkOrderTaskParamsOpenApiSchema);
   registry.register("WorkOrderTaskStatusUpdateRequest", WorkOrderTaskStatusUpdateRequestSchema);
+  registry.register("InvoiceIdParams", InvoiceIdParamsOpenApiSchema);
+  registry.register("InvoiceLineIdParams", InvoiceLineIdParamsOpenApiSchema);
+  registry.register("InvoiceWorkOrderIdParams", InvoiceWorkOrderIdParamsOpenApiSchema);
+  registry.register("InvoiceCreateRequest", InvoiceCreateRequestSchema);
+  registry.register("InvoiceLineCreateRequest", InvoiceLineCreateRequestSchema);
+  registry.register("InvoiceLineUpdateRequest", InvoiceLineUpdateRequestSchema);
+  registry.register("InvoiceStatusUpdateRequest", InvoiceStatusUpdateRequestSchema);
+  registry.register("InvoiceWorkOrdersAddRequest", InvoiceWorkOrdersAddRequestSchema);
 }
