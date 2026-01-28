@@ -91,6 +91,15 @@ const EnvSchema = z
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     SMTP_FROM: z.string().email().optional(),
+    QBO_CLIENT_ID: z.string().optional(),
+    QBO_CLIENT_SECRET: z.string().optional(),
+    QBO_REDIRECT_URI: z.string().url().optional(),
+    QBO_SCOPES: z.string().optional(),
+    QBO_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox"),
+    QBO_WEBHOOK_VERIFIER_TOKEN: z.string().optional(),
+    QBO_TOKEN_ENCRYPTION_KEY: z.string().optional(),
+    QBO_AUTH_BASE_URL: z.string().url().optional(),
+    QBO_TOKEN_URL: z.string().url().optional(),
     METRICS_ENABLED: z.string().optional(),
     METRICS_GUARD: z.enum(["none", "secret", "cidr"]).default("none"),
     METRICS_GUARD_SECRET: z.string().optional(),
@@ -161,6 +170,25 @@ const EnvSchema = z
       });
     }
 
+    if (data.QBO_TOKEN_ENCRYPTION_KEY) {
+      try {
+        const key = Buffer.from(data.QBO_TOKEN_ENCRYPTION_KEY, "base64");
+        if (key.length !== 32) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["QBO_TOKEN_ENCRYPTION_KEY"],
+            message: "QBO_TOKEN_ENCRYPTION_KEY must be 32 bytes (base64 encoded)",
+          });
+        }
+      } catch {
+        ctx.addIssue({
+          code: "custom",
+          path: ["QBO_TOKEN_ENCRYPTION_KEY"],
+          message: "QBO_TOKEN_ENCRYPTION_KEY must be valid base64",
+        });
+      }
+    }
+
     if (data.NODE_ENV === "production") {
       const metricsEnabled = parseBooleanEnv(data.METRICS_ENABLED);
       if (metricsEnabled && data.METRICS_GUARD === "none") {
@@ -222,6 +250,17 @@ export type AppConfig = z.infer<typeof EnvSchema> & {
     loginLockoutMs: number;
     loginAttemptWindowMs: number;
   };
+  qbo: {
+    clientId: string | undefined;
+    clientSecret: string | undefined;
+    redirectUri: string | undefined;
+    scopes: string[];
+    environment: "sandbox" | "production";
+    webhookVerifierToken: string | undefined;
+    tokenEncryptionKey: Buffer | null;
+    authBaseUrl: string;
+    tokenUrl: string;
+  };
 };
 
 export type MetricsGuardConfig =
@@ -278,6 +317,26 @@ export function getConfig(): AppConfig {
     loginAttemptWindowMs: cfg.AUTH_LOGIN_ATTEMPT_WINDOW_MINUTES * 60 * 1000,
   };
 
+  const qboScopes = splitCommaSeparated(cfg.QBO_SCOPES);
+  const defaultAuthBaseUrl =
+    cfg.QBO_ENVIRONMENT === "production"
+      ? "https://appcenter.intuit.com/connect/oauth2"
+      : "https://sandbox.appcenter.intuit.com/connect/oauth2";
+  const defaultTokenUrl = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer";
+  const qbo = {
+    clientId: cfg.QBO_CLIENT_ID,
+    clientSecret: cfg.QBO_CLIENT_SECRET,
+    redirectUri: cfg.QBO_REDIRECT_URI,
+    scopes: qboScopes.length > 0 ? qboScopes : ["com.intuit.quickbooks.accounting"],
+    environment: cfg.QBO_ENVIRONMENT,
+    webhookVerifierToken: cfg.QBO_WEBHOOK_VERIFIER_TOKEN,
+    tokenEncryptionKey: cfg.QBO_TOKEN_ENCRYPTION_KEY
+      ? Buffer.from(cfg.QBO_TOKEN_ENCRYPTION_KEY, "base64")
+      : null,
+    authBaseUrl: cfg.QBO_AUTH_BASE_URL ?? defaultAuthBaseUrl,
+    tokenUrl: cfg.QBO_TOKEN_URL ?? defaultTokenUrl,
+  } as const;
+
   const compressionEnabledEnv = cfg.RESPONSE_COMPRESSION_ENABLED;
   const responseCompression = {
     enabled: compressionEnabledEnv ? parseBooleanEnv(compressionEnabledEnv) : true,
@@ -294,6 +353,7 @@ export function getConfig(): AppConfig {
     responseCompression,
     smtp,
     auth,
+    qbo,
   };
   return cached!;
 }

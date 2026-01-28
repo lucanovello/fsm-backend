@@ -5,6 +5,7 @@ export const Tags = {
   Sessions: "Sessions",
   RBAC: "RBAC",
   Organizations: "Organizations",
+  Integrations: "Integrations",
   Customers: "Customers",
   Technicians: "Technicians",
   WorkOrders: "WorkOrders",
@@ -21,6 +22,7 @@ export function applyTagMetadata(openapi: Record<string, unknown>): void {
     { name: Tags.Sessions, description: "Session management for authenticated users." },
     { name: Tags.RBAC, description: "Role-gated resources and authorization flows." },
     { name: Tags.Organizations, description: "Tenant organization management." },
+    { name: Tags.Integrations, description: "External system integrations and webhooks." },
     { name: Tags.Customers, description: "Customer directory and profile views." },
     { name: Tags.Technicians, description: "Technician directory and contact details." },
     { name: Tags.WorkOrders, description: "Work order listings and detail views." },
@@ -31,7 +33,10 @@ export function applyTagMetadata(openapi: Record<string, unknown>): void {
 
   openapi["x-tagGroups"] = [
     { name: "Platform", tags: [Tags.Operational, Tags.Metrics] },
-    { name: "Identity", tags: [Tags.Auth, Tags.Sessions, Tags.RBAC, Tags.Organizations] },
+    {
+      name: "Identity",
+      tags: [Tags.Auth, Tags.Sessions, Tags.RBAC, Tags.Organizations, Tags.Integrations],
+    },
     {
       name: "FSM",
       tags: [
