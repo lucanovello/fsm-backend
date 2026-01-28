@@ -121,6 +121,9 @@ model Organization {
   resourceRequirements ResourceRequirement[]
   routes             Route[]
   routeStops         RouteStop[]
+  invoices           Invoice[]
+  invoiceWorkOrders  InvoiceWorkOrder[]
+  invoiceLines       InvoiceLine[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -215,6 +218,13 @@ enum TaskStatus {
   SKIPPED
 }
 
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  VOID
+}
+
 model Customer {
   id                  String            @id @default(cuid())
   org                 Organization?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
@@ -231,6 +241,7 @@ model Customer {
   serviceLocations    ServiceLocation[]
   workOrders          WorkOrder[]
   serviceContracts    ServiceContract[]
+  invoices            Invoice[]
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 
@@ -384,6 +395,7 @@ model WorkOrder {
   bookings             Booking[]
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
+  invoiceLinks         InvoiceWorkOrder[]
   @@index([customerId])
   @@index([serviceLocationId])
   @@index([assignedTechnicianId])
@@ -626,6 +638,60 @@ model WorkOrderLineItem {
 
   @@index([workOrderId])
   @@index([orgId])
+}
+
+model Invoice {
+  id         String        @id @default(cuid())
+  org        Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String
+  status     InvoiceStatus @default(DRAFT)
+  dueDate    DateTime?
+  memo       String?
+  issuedAt   DateTime?
+  paidAt     DateTime?
+  voidedAt   DateTime?
+  workOrders InvoiceWorkOrder[]
+  lines      InvoiceLine[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([orgId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model InvoiceWorkOrder {
+  id          String       @id @default(cuid())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  invoice     Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId   String
+  workOrder   WorkOrder    @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  workOrderId String
+  createdAt   DateTime     @default(now())
+
+  @@unique([orgId, invoiceId, workOrderId])
+  @@index([orgId])
+  @@index([invoiceId])
+  @@index([workOrderId])
+}
+
+model InvoiceLine {
+  id             String       @id @default(cuid())
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  invoice        Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId      String
+  description    String
+  quantity       Int          @default(1)
+  unitPriceCents Int?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([orgId])
+  @@index([invoiceId])
 }
 
 model RecurrenceRule {
