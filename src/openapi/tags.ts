@@ -9,6 +9,7 @@ export const Tags = {
   Technicians: "Technicians",
   WorkOrders: "WorkOrders",
   WorkTemplates: "WorkTemplates",
+  ServiceContracts: "ServiceContracts",
 } as const;
 
 export function applyTagMetadata(openapi: Record<string, unknown>): void {
@@ -23,11 +24,15 @@ export function applyTagMetadata(openapi: Record<string, unknown>): void {
     { name: Tags.Technicians, description: "Technician directory and contact details." },
     { name: Tags.WorkOrders, description: "Work order listings and detail views." },
     { name: Tags.WorkTemplates, description: "Work template definitions and task checklists." },
+    { name: Tags.ServiceContracts, description: "Recurring service contract definitions." },
   ];
 
   openapi["x-tagGroups"] = [
     { name: "Platform", tags: [Tags.Operational, Tags.Metrics] },
     { name: "Identity", tags: [Tags.Auth, Tags.Sessions, Tags.RBAC, Tags.Organizations] },
-    { name: "FSM", tags: [Tags.Customers, Tags.Technicians, Tags.WorkOrders, Tags.WorkTemplates] },
+    {
+      name: "FSM",
+      tags: [Tags.Customers, Tags.Technicians, Tags.WorkOrders, Tags.WorkTemplates, Tags.ServiceContracts],
+    },
   ];
 }

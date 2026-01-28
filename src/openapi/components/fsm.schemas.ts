@@ -2,6 +2,13 @@ import {
   CustomerIdParamsSchema,
   CustomersListQuerySchema,
 } from "../../modules/customers/dto/customers.dto.js";
+import {
+  ServiceContractCreateSchema,
+  ServiceContractIdParamsSchema,
+  ServiceContractMaterializeSchema,
+  ServiceContractsListQuerySchema,
+  ServiceContractUpdateSchema,
+} from "../../modules/service-contracts/dto/serviceContracts.dto.js";
 import { TechniciansListQuerySchema } from "../../modules/technicians/dto/technicians.dto.js";
 import {
   WorkOrderIdParamsSchema,
@@ -441,6 +448,111 @@ export const WorkTemplateResponseSchema = z
   })
   .openapi("WorkTemplateResponse");
 
+export const RecurrenceRuleSchema = z
+  .object({
+    rrule: z.string().openapi({ example: "FREQ=WEEKLY;BYDAY=MO" }),
+    dtstartLocal: z.string().openapi({ example: "2025-01-06T09:00:00" }),
+    timeZone: z.string().openapi({ example: "America/New_York" }),
+    untilLocal: z.string().nullable().openapi({ example: "2025-12-29T09:00:00" }),
+  })
+  .openapi("RecurrenceRule");
+
+export const ServiceContractCustomerSchema = z
+  .object({
+    id: z.string().openapi({ example: "cust_1" }),
+    name: z.string().openapi({ example: "Acme Corp" }),
+  })
+  .openapi("ServiceContractCustomer");
+
+export const ServiceContractLocationSchema = z
+  .object({
+    id: z.string().openapi({ example: "loc_1" }),
+    label: z.string().nullable().openapi({ example: "HQ" }),
+    city: z.string().openapi({ example: "Toronto" }),
+  })
+  .openapi("ServiceContractLocation");
+
+export const ServiceContractLocationDetailSchema = z
+  .object({
+    id: z.string().openapi({ example: "loc_1" }),
+    label: z.string().nullable().openapi({ example: "HQ" }),
+    addressLine1: z.string().openapi({ example: "100 King St W" }),
+    addressLine2: z.string().nullable().openapi({ example: "Suite 1200" }),
+    city: z.string().openapi({ example: "Toronto" }),
+    province: z.string().nullable().openapi({ example: "ON" }),
+    postalCode: z.string().nullable().openapi({ example: "M5X 1A9" }),
+    country: z.string().nullable().openapi({ example: "CA" }),
+  })
+  .openapi("ServiceContractLocationDetail");
+
+export const ServiceContractItemSchema = z
+  .object({
+    id: z.string().openapi({ example: "item_1" }),
+    title: z.string().openapi({ example: "Weekly mowing" }),
+    description: z.string().nullable().openapi({ example: "Front and back lawns" }),
+    quantity: z.number().int().openapi({ example: 1 }),
+    unitPriceCents: z.number().int().nullable().openapi({ example: 5000 }),
+    workTemplateId: z.string().nullable().openapi({ example: "tpl_1" }),
+  })
+  .openapi("ServiceContractItem");
+
+export const ServiceContractListItemSchema = z
+  .object({
+    id: z.string().openapi({ example: "contract_1" }),
+    name: z.string().openapi({ example: "Weekly Lawn Service" }),
+    description: z.string().nullable().openapi({ example: "Weekly recurring service" }),
+    isActive: z.boolean().openapi({ example: true }),
+    customer: ServiceContractCustomerSchema,
+    serviceLocation: ServiceContractLocationSchema.nullable(),
+    recurrence: RecurrenceRuleSchema,
+    createdAt: z.string().datetime().openapi({ example: "2025-01-01T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-08T09:00:00Z" }),
+  })
+  .openapi("ServiceContractListItem");
+
+export const ServiceContractsListResponseSchema = z
+  .object({
+    items: z.array(ServiceContractListItemSchema),
+    page: z.number().int(),
+    pageSize: z.number().int(),
+    total: z.number().int(),
+  })
+  .openapi("ServiceContractsListResponse");
+
+export const ServiceContractDetailSchema = z
+  .object({
+    id: z.string().openapi({ example: "contract_1" }),
+    name: z.string().openapi({ example: "Weekly Lawn Service" }),
+    description: z.string().nullable().openapi({ example: "Weekly recurring service" }),
+    isActive: z.boolean().openapi({ example: true }),
+    customer: ServiceContractCustomerSchema,
+    serviceLocation: ServiceContractLocationDetailSchema.nullable(),
+    recurrence: RecurrenceRuleSchema,
+    items: z.array(ServiceContractItemSchema),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-01T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-08T09:00:00Z" }),
+  })
+  .openapi("ServiceContractDetail");
+
+export const ServiceContractResponseSchema = z
+  .object({
+    contract: ServiceContractDetailSchema,
+  })
+  .openapi("ServiceContractResponse");
+
+export const GeneratedOccurrenceSchema = z
+  .object({
+    id: z.string().openapi({ example: "occ_1" }),
+    startsAt: z.string().datetime().openapi({ example: "2025-02-03T14:00:00Z" }),
+  })
+  .openapi("GeneratedOccurrence");
+
+export const ServiceContractOccurrencesResponseSchema = z
+  .object({
+    occurrences: z.array(GeneratedOccurrenceSchema),
+  })
+  .openapi("ServiceContractOccurrencesResponse");
+
 export const CustomersListQueryParamsSchema = CustomersListQuerySchema.openapi(
   "CustomersListQueryParams",
 );
@@ -465,6 +577,21 @@ export const WorkTemplateCreateRequestSchema = WorkTemplateCreateSchema.openapi(
 );
 export const WorkTemplateUpdateRequestSchema = WorkTemplateUpdateSchema.openapi(
   "WorkTemplateUpdateRequest",
+);
+
+export const ServiceContractsListQueryParamsSchema = ServiceContractsListQuerySchema.openapi(
+  "ServiceContractsListQueryParams",
+);
+export const ServiceContractIdParamsOpenApiSchema =
+  ServiceContractIdParamsSchema.openapi("ServiceContractIdParams");
+export const ServiceContractCreateRequestSchema = ServiceContractCreateSchema.openapi(
+  "ServiceContractCreateRequest",
+);
+export const ServiceContractUpdateRequestSchema = ServiceContractUpdateSchema.openapi(
+  "ServiceContractUpdateRequest",
+);
+export const ServiceContractMaterializeRequestSchema = ServiceContractMaterializeSchema.openapi(
+  "ServiceContractMaterializeRequest",
 );
 
 export const WorkOrderIncidentCreateRequestSchema = WorkOrderIncidentCreateSchema.openapi(
@@ -509,6 +636,20 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("WorkTemplatesListResponse", WorkTemplatesListResponseSchema);
   registry.register("WorkTemplateDetail", WorkTemplateDetailSchema);
   registry.register("WorkTemplateResponse", WorkTemplateResponseSchema);
+  registry.register("RecurrenceRule", RecurrenceRuleSchema);
+  registry.register("ServiceContractCustomer", ServiceContractCustomerSchema);
+  registry.register("ServiceContractLocation", ServiceContractLocationSchema);
+  registry.register("ServiceContractLocationDetail", ServiceContractLocationDetailSchema);
+  registry.register("ServiceContractItem", ServiceContractItemSchema);
+  registry.register("ServiceContractListItem", ServiceContractListItemSchema);
+  registry.register("ServiceContractsListResponse", ServiceContractsListResponseSchema);
+  registry.register("ServiceContractDetail", ServiceContractDetailSchema);
+  registry.register("ServiceContractResponse", ServiceContractResponseSchema);
+  registry.register("GeneratedOccurrence", GeneratedOccurrenceSchema);
+  registry.register(
+    "ServiceContractOccurrencesResponse",
+    ServiceContractOccurrencesResponseSchema,
+  );
 
   registry.register("CustomersListQueryParams", CustomersListQueryParamsSchema);
   registry.register("CustomerIdParams", CustomerIdParamsOpenApiSchema);
@@ -519,6 +660,14 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("WorkTemplateIdParams", WorkTemplateIdParamsOpenApiSchema);
   registry.register("WorkTemplateCreateRequest", WorkTemplateCreateRequestSchema);
   registry.register("WorkTemplateUpdateRequest", WorkTemplateUpdateRequestSchema);
+  registry.register("ServiceContractsListQueryParams", ServiceContractsListQueryParamsSchema);
+  registry.register("ServiceContractIdParams", ServiceContractIdParamsOpenApiSchema);
+  registry.register("ServiceContractCreateRequest", ServiceContractCreateRequestSchema);
+  registry.register("ServiceContractUpdateRequest", ServiceContractUpdateRequestSchema);
+  registry.register(
+    "ServiceContractMaterializeRequest",
+    ServiceContractMaterializeRequestSchema,
+  );
   registry.register("WorkOrderIncidentCreateRequest", WorkOrderIncidentCreateRequestSchema);
   registry.register("WorkOrderIncidentParams", WorkOrderIncidentParamsOpenApiSchema);
   registry.register("WorkOrderTaskInstantiateRequest", WorkOrderTaskInstantiateRequestSchema);
