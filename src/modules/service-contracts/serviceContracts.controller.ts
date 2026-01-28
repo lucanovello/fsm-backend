@@ -51,7 +51,11 @@ export async function getServiceContractHandler(req: Request, res: Response, nex
   }
 }
 
-export async function createServiceContractHandler(req: Request, res: Response, next: NextFunction) {
+export async function createServiceContractHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     if (!req.org) {
       throw orgRequired();
@@ -65,7 +69,11 @@ export async function createServiceContractHandler(req: Request, res: Response, 
   }
 }
 
-export async function updateServiceContractHandler(req: Request, res: Response, next: NextFunction) {
+export async function updateServiceContractHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     if (!req.org) {
       throw orgRequired();
@@ -82,7 +90,11 @@ export async function updateServiceContractHandler(req: Request, res: Response, 
   }
 }
 
-export async function deleteServiceContractHandler(req: Request, res: Response, next: NextFunction) {
+export async function deleteServiceContractHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     if (!req.org) {
       throw orgRequired();

@@ -32,7 +32,13 @@ export function applyTagMetadata(openapi: Record<string, unknown>): void {
     { name: "Identity", tags: [Tags.Auth, Tags.Sessions, Tags.RBAC, Tags.Organizations] },
     {
       name: "FSM",
-      tags: [Tags.Customers, Tags.Technicians, Tags.WorkOrders, Tags.WorkTemplates, Tags.ServiceContracts],
+      tags: [
+        Tags.Customers,
+        Tags.Technicians,
+        Tags.WorkOrders,
+        Tags.WorkTemplates,
+        Tags.ServiceContracts,
+      ],
     },
   ];
 }

@@ -57,9 +57,8 @@ let materializeServiceContractOccurrences: typeof import("../src/modules/service
 describe("serviceContracts.service", () => {
   beforeAll(async () => {
     ({ prisma } = await import("../src/infrastructure/db/prisma.js"));
-    ({ buildRecurrenceRule, generateNextOccurrences } = await import(
-      "../src/modules/service-contracts/recurrence.service.js"
-    ));
+    ({ buildRecurrenceRule, generateNextOccurrences } =
+      await import("../src/modules/service-contracts/recurrence.service.js"));
     ({
       listServiceContracts,
       getServiceContract,

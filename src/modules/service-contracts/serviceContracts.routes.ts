@@ -52,6 +52,9 @@ serviceContractsRoutes.delete(
 
 serviceContractsRoutes.post(
   "/:id/materialize",
-  validateRequest({ params: ServiceContractIdParamsSchema, body: ServiceContractMaterializeSchema }),
+  validateRequest({
+    params: ServiceContractIdParamsSchema,
+    body: ServiceContractMaterializeSchema,
+  }),
   materializeServiceContractHandler,
 );

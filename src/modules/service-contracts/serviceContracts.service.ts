@@ -321,7 +321,9 @@ export async function updateServiceContract(
     if (input.items !== undefined) {
       await tx.contractItem.deleteMany({ where: { contractId: existing.id, orgId } });
       if (items && items.length > 0) {
-        await tx.contractItem.createMany({ data: items.map((item) => ({ ...item, contractId: id })) });
+        await tx.contractItem.createMany({
+          data: items.map((item) => ({ ...item, contractId: id })),
+        });
       }
     }
 
@@ -442,4 +444,3 @@ export async function materializeServiceContractOccurrences(
 
   return { occurrences: stored };
 }
-

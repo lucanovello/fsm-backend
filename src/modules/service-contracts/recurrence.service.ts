@@ -39,7 +39,10 @@ export function buildRecurrenceRule(config: RecurrenceRuleConfig): RRule {
     : null;
 
   if (until && until < dtstart) {
-    throw invalidRecurrence("untilLocal must be on or after dtstartLocal", "RECURRENCE_UNTIL_BEFORE_START");
+    throw invalidRecurrence(
+      "untilLocal must be on or after dtstartLocal",
+      "RECURRENCE_UNTIL_BEFORE_START",
+    );
   }
 
   return new RRule({
