@@ -111,6 +111,10 @@ model Organization {
   workOrderTasks     WorkOrderTask[]
   workNotes          WorkNote[]
   workOrderLineItems WorkOrderLineItem[]
+  serviceContracts   ServiceContract[]
+  contractItems      ContractItem[]
+  recurrenceRules    RecurrenceRule[]
+  generatedOccurrences GeneratedOccurrence[]
   bookingStatuses    BookingStatus[]
   bookings           Booking[]
   bookingStatusEvents BookingStatusEvent[]
@@ -226,6 +230,7 @@ model Customer {
   billingCountry      String?
   serviceLocations    ServiceLocation[]
   workOrders          WorkOrder[]
+  serviceContracts    ServiceContract[]
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 
@@ -248,6 +253,7 @@ model ServiceLocation {
   latitude     Float?
   longitude    Float?
   workOrders   WorkOrder[]
+  serviceContracts ServiceContract[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -394,6 +400,7 @@ model WorkTemplate {
   tasks       TemplateTask[]
   skillRequirements TemplateSkillRequirement[]
   incidents   WorkOrderIncident[]
+  contractItems ContractItem[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -619,4 +626,78 @@ model WorkOrderLineItem {
 
   @@index([workOrderId])
   @@index([orgId])
+}
+
+model RecurrenceRule {
+  id           String        @id @default(cuid())
+  org          Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  rrule        String
+  dtstartLocal String
+  timeZone     String
+  untilLocal   String?
+  contracts    ServiceContract[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([orgId])
+}
+
+model ServiceContract {
+  id                String             @id @default(cuid())
+  org               Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId             String
+  customer          Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId        String
+  serviceLocation   ServiceLocation?   @relation(fields: [serviceLocationId], references: [id], onDelete: SetNull)
+  serviceLocationId String?
+  recurrenceRule    RecurrenceRule     @relation(fields: [recurrenceRuleId], references: [id], onDelete: Restrict)
+  recurrenceRuleId  String
+  name              String
+  description       String?
+  isActive          Boolean            @default(true)
+  items             ContractItem[]
+  occurrences       GeneratedOccurrence[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([orgId])
+  @@index([customerId])
+  @@index([serviceLocationId])
+  @@index([recurrenceRuleId])
+}
+
+model ContractItem {
+  id             String          @id @default(cuid())
+  org            Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  contract       ServiceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contractId     String
+  workTemplate   WorkTemplate?   @relation(fields: [workTemplateId], references: [id], onDelete: SetNull)
+  workTemplateId String?
+  title          String
+  description    String?
+  quantity       Int             @default(1)
+  unitPriceCents Int?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([orgId])
+  @@index([contractId])
+  @@index([workTemplateId])
+}
+
+model GeneratedOccurrence {
+  id         String          @id @default(cuid())
+  org        Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  contract   ServiceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contractId String
+  startsAt   DateTime
+  createdAt  DateTime        @default(now())
+
+  @@unique([orgId, contractId, startsAt])
+  @@index([orgId])
+  @@index([contractId])
+  @@index([startsAt])
 }

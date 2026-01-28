@@ -28,6 +28,14 @@ import {
   WorkOrderIdParamsOpenApiSchema,
   WorkOrdersListQueryParamsSchema,
   WorkOrdersListResponseSchema,
+  ServiceContractCreateRequestSchema,
+  ServiceContractIdParamsOpenApiSchema,
+  ServiceContractMaterializeRequestSchema,
+  ServiceContractOccurrencesResponseSchema,
+  ServiceContractResponseSchema,
+  ServiceContractUpdateRequestSchema,
+  ServiceContractsListQueryParamsSchema,
+  ServiceContractsListResponseSchema,
 } from "../components/fsm.schemas.js";
 import { Tags } from "../tags.js";
 import { z } from "../zod.js";
@@ -321,6 +329,144 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
       404: errorResponse("Work order task not found", {
         message: "Work order task not found",
         code: "WORK_ORDER_TASK_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/service-contracts",
+    summary: "List service contracts",
+    description: "Search and paginate recurring service contracts.",
+    tags: [Tags.ServiceContracts],
+    security: [{ BearerAuth: [] }],
+    request: { query: ServiceContractsListQueryParamsSchema },
+    responses: {
+      200: {
+        description: "Service contract list.",
+        content: { "application/json": { schema: ServiceContractsListResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/service-contracts",
+    summary: "Create service contract",
+    description: "Create a recurring service contract with items and a recurrence rule.",
+    tags: [Tags.ServiceContracts],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: {
+        content: { "application/json": { schema: ServiceContractCreateRequestSchema } },
+      },
+    },
+    responses: {
+      201: {
+        description: "Service contract created.",
+        content: { "application/json": { schema: ServiceContractResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/service-contracts/{id}",
+    summary: "Get service contract",
+    description: "Fetch a service contract with items and recurrence rule.",
+    tags: [Tags.ServiceContracts],
+    security: [{ BearerAuth: [] }],
+    request: { params: ServiceContractIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Service contract found.",
+        content: { "application/json": { schema: ServiceContractResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service contract not found", {
+        message: "Service contract not found",
+        code: "SERVICE_CONTRACT_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/service-contracts/{id}",
+    summary: "Update service contract",
+    description: "Update a service contract and replace items when provided.",
+    tags: [Tags.ServiceContracts],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: ServiceContractIdParamsOpenApiSchema,
+      body: {
+        content: { "application/json": { schema: ServiceContractUpdateRequestSchema } },
+      },
+    },
+    responses: {
+      200: {
+        description: "Service contract updated.",
+        content: { "application/json": { schema: ServiceContractResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service contract not found", {
+        message: "Service contract not found",
+        code: "SERVICE_CONTRACT_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/service-contracts/{id}",
+    summary: "Delete service contract",
+    description: "Delete a service contract.",
+    tags: [Tags.ServiceContracts],
+    security: [{ BearerAuth: [] }],
+    request: { params: ServiceContractIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Service contract deleted.",
+        content: { "application/json": { schema: z.object({ deleted: z.boolean() }) } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service contract not found", {
+        message: "Service contract not found",
+        code: "SERVICE_CONTRACT_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/service-contracts/{id}/materialize",
+    summary: "Materialize service contract occurrences",
+    description: "Generate and store the next occurrences for a service contract.",
+    tags: [Tags.ServiceContracts],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: ServiceContractIdParamsOpenApiSchema,
+      body: {
+        content: { "application/json": { schema: ServiceContractMaterializeRequestSchema } },
+      },
+    },
+    responses: {
+      200: {
+        description: "Occurrences materialized.",
+        content: { "application/json": { schema: ServiceContractOccurrencesResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service contract not found", {
+        message: "Service contract not found",
+        code: "SERVICE_CONTRACT_NOT_FOUND",
       }),
     },
   });
