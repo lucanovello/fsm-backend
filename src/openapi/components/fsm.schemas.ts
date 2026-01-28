@@ -646,10 +646,7 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("ServiceContractDetail", ServiceContractDetailSchema);
   registry.register("ServiceContractResponse", ServiceContractResponseSchema);
   registry.register("GeneratedOccurrence", GeneratedOccurrenceSchema);
-  registry.register(
-    "ServiceContractOccurrencesResponse",
-    ServiceContractOccurrencesResponseSchema,
-  );
+  registry.register("ServiceContractOccurrencesResponse", ServiceContractOccurrencesResponseSchema);
 
   registry.register("CustomersListQueryParams", CustomersListQueryParamsSchema);
   registry.register("CustomerIdParams", CustomerIdParamsOpenApiSchema);
@@ -664,10 +661,7 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("ServiceContractIdParams", ServiceContractIdParamsOpenApiSchema);
   registry.register("ServiceContractCreateRequest", ServiceContractCreateRequestSchema);
   registry.register("ServiceContractUpdateRequest", ServiceContractUpdateRequestSchema);
-  registry.register(
-    "ServiceContractMaterializeRequest",
-    ServiceContractMaterializeRequestSchema,
-  );
+  registry.register("ServiceContractMaterializeRequest", ServiceContractMaterializeRequestSchema);
   registry.register("WorkOrderIncidentCreateRequest", WorkOrderIncidentCreateRequestSchema);
   registry.register("WorkOrderIncidentParams", WorkOrderIncidentParamsOpenApiSchema);
   registry.register("WorkOrderTaskInstantiateRequest", WorkOrderTaskInstantiateRequestSchema);

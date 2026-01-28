@@ -53,7 +53,9 @@ describe("serviceContracts.controller", () => {
     createServiceContract = vi.mocked(service.createServiceContract);
     updateServiceContract = vi.mocked(service.updateServiceContract);
     deleteServiceContract = vi.mocked(service.deleteServiceContract);
-    materializeServiceContractOccurrences = vi.mocked(service.materializeServiceContractOccurrences);
+    materializeServiceContractOccurrences = vi.mocked(
+      service.materializeServiceContractOccurrences,
+    );
   });
 
   beforeEach(() => {
