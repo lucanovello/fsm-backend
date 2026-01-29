@@ -32,6 +32,8 @@
     "start": "npm run start:prod",
     "start:prod": "npm run build && npm run db:migrate:deploy && npm run start:runtime",
     "start:runtime": "node dist/index.js",
+    "container:scan": "node scripts/scan-container.mjs",
+    "container:scan:staged": "node scripts/scan-container.mjs --staged",
     "test:setup-db": "node scripts/test/setup-test-db.mjs",
     "test": "cross-env TEST_ENV_FILE=.env.test npm run test:setup-db && vitest run",
     "test:ci": "cross-env TEST_ENV_FILE=.env.test npm run test:setup-db && vitest run --coverage",

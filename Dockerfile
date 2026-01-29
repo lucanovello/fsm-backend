@@ -2,14 +2,10 @@
 ARG NODE_VERSION=20.19.0
 ARG ALPINE_VERSION=3.20
 ARG GCOMPAT_VERSION=1.1.0-r4
-ARG NPM_VERSION=11.8.0
 ARG PRISMA_CLI_VERSION=7.3.0
 
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base
 WORKDIR /app
-
-ARG NPM_VERSION
-RUN npm install -g "npm@${NPM_VERSION}"
 
 # ---- Deps ----
 FROM base AS deps
@@ -48,8 +44,13 @@ FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-ARG NPM_VERSION
-RUN npm install -g "npm@${NPM_VERSION}"
+# Pull in latest security fixes for Alpine packages (e.g. OpenSSL).
+RUN apk upgrade --no-cache
+
+# The runtime image doesn't need npm/npx. Removing them reduces attack surface
+# and avoids Node.js ecosystem CVEs that only affect the package manager.
+RUN rm -rf /usr/local/lib/node_modules/npm \
+  && rm -f /usr/local/bin/npm /usr/local/bin/npx
 RUN addgroup -S app && adduser -S app -G app
 USER app
 
@@ -59,4 +60,4 @@ COPY package*.json ./
 COPY prisma         ./prisma
 
 EXPOSE 3000
-CMD ["sh", "-c", "npm run db:migrate:deploy && npm run start:runtime"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node dist/index.js"]

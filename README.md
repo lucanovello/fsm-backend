@@ -151,6 +151,26 @@ Coverage:
 npm run test:ci
 ```
 
+## Container vulnerability scan (Trivy)
+
+CI builds the Docker image and runs Trivy against it (HIGH/CRITICAL).
+
+Local run:
+
+```bash
+npm run container:scan
+```
+
+Pre-commit integration:
+
+- The pre-commit hook runs `npm run container:scan:staged` (only when Docker/package inputs are staged).
+- To bypass locally (not recommended), set `SKIP_CONTAINER_SCAN=1`.
+
+Windows note:
+
+- Install the Trivy CLI so `trivy image ...` can talk to Docker Desktop:
+  - `choco install trivy` or `scoop install trivy`
+
 ## Useful endpoints
 
 - `GET /health` → liveness (`{ "status": "ok" }`)
