@@ -765,15 +765,12 @@ export const WorkOrderTaskStatusUpdateRequestSchema = WorkOrderTaskStatusUpdateS
   "WorkOrderTaskStatusUpdateRequest",
 );
 
-export const GeoDeviceCreateRequestSchema = GeoDeviceCreateSchema.openapi(
-  "GeoDeviceCreateRequest",
-);
+export const GeoDeviceCreateRequestSchema = GeoDeviceCreateSchema.openapi("GeoDeviceCreateRequest");
 export const GeoPingBatchIngestRequestSchema = GeoPingBatchIngestSchema.openapi(
   "GeoPingBatchIngestRequest",
 );
-export const GeoResourceIdParamsOpenApiSchema = GeoResourceIdParamsSchema.openapi(
-  "GeoResourceIdParams",
-);
+export const GeoResourceIdParamsOpenApiSchema =
+  GeoResourceIdParamsSchema.openapi("GeoResourceIdParams");
 export const GeoPingsQueryParamsSchema = GeoPingsQuerySchema.openapi("GeoPingsQueryParams");
 
 export function registerFsmSchemas(registry: OpenAPIRegistry): void {
