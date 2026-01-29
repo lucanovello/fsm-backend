@@ -3,6 +3,14 @@ import {
   CustomersListQuerySchema,
 } from "../../modules/customers/dto/customers.dto.js";
 import {
+  CrewCreateSchema,
+  CrewIdParamsSchema,
+  CrewMemberCreateSchema,
+  CrewMemberParamsSchema,
+  CrewsListQuerySchema,
+  CrewUpdateSchema,
+} from "../../modules/crews/dto/crews.dto.js";
+import {
   GeoDeviceCreateSchema,
   GeoPingBatchIngestSchema,
   GeoPingsQuerySchema,
@@ -26,6 +34,25 @@ import {
   ServiceContractsListQuerySchema,
   ServiceContractUpdateSchema,
 } from "../../modules/service-contracts/dto/serviceContracts.dto.js";
+import {
+  ServiceResourceCreateSchema,
+  ServiceResourceIdParamsSchema,
+  ServiceResourcesListQuerySchema,
+  ServiceResourceUpdateSchema,
+} from "../../modules/service-resources/dto/serviceResources.dto.js";
+import {
+  BookingCreateSchema,
+  BookingIdParamsSchema,
+  BookingStatusChangeSchema,
+  BookingUpdateSchema,
+} from "../../modules/scheduling/dto/bookings.dto.js";
+import {
+  RouteCreateSchema,
+  RouteIdParamsSchema,
+  RouteStopAddSchema,
+  RouteStopIdParamsSchema,
+  RouteStopReorderSchema,
+} from "../../modules/scheduling/dto/routes.dto.js";
 import { TechniciansListQuerySchema } from "../../modules/technicians/dto/technicians.dto.js";
 import {
   WorkOrderIdParamsSchema,
@@ -198,6 +225,240 @@ export const TechniciansListResponseSchema = z
       total: 2,
     },
   });
+
+export const CrewListItemSchema = z
+  .object({
+    id: z.string().openapi({ example: "crew_1" }),
+    name: z.string().openapi({ example: "North Crew" }),
+    description: z.string().nullable().openapi({ example: "Primary north region crew" }),
+    memberCount: z.number().int().openapi({ example: 4 }),
+  })
+  .openapi("CrewListItem");
+
+export const CrewsListResponseSchema = z
+  .object({
+    items: z.array(CrewListItemSchema),
+    page: z.number().int().openapi({ example: 1 }),
+    pageSize: z.number().int().openapi({ example: 25 }),
+    total: z.number().int().openapi({ example: 3 }),
+  })
+  .openapi("CrewsListResponse", {
+    example: {
+      items: [
+        {
+          id: "crew_1",
+          name: "North Crew",
+          description: "Primary north region crew",
+          memberCount: 4,
+        },
+      ],
+      page: 1,
+      pageSize: 25,
+      total: 3,
+    },
+  });
+
+export const CrewMemberResourceSchema = z
+  .object({
+    id: z.string().openapi({ example: "res_1" }),
+    displayName: z.string().openapi({ example: "Alex Tech" }),
+    email: z.string().email().nullable().openapi({ example: "alex.tech@example.com" }),
+    phone: z.string().nullable().openapi({ example: "+1-555-0111" }),
+    isActive: z.boolean().openapi({ example: true }),
+  })
+  .openapi("CrewMemberResource");
+
+export const CrewMemberSchema = z
+  .object({
+    id: z.string().openapi({ example: "crew_member_1" }),
+    resource: CrewMemberResourceSchema,
+  })
+  .openapi("CrewMember");
+
+export const CrewMemberWithCrewSchema = CrewMemberSchema.extend({
+  crewId: z.string().openapi({ example: "crew_1" }),
+}).openapi("CrewMemberWithCrew");
+
+export const CrewSchema = z
+  .object({
+    id: z.string().openapi({ example: "crew_1" }),
+    name: z.string().openapi({ example: "North Crew" }),
+    description: z.string().nullable().openapi({ example: "Primary north region crew" }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+  })
+  .openapi("Crew");
+
+export const CrewDetailSchema = CrewSchema.extend({
+  members: z.array(CrewMemberSchema),
+}).openapi("CrewDetail");
+
+export const CrewResponseSchema = z
+  .object({
+    crew: CrewSchema,
+  })
+  .openapi("CrewResponse");
+
+export const CrewDetailResponseSchema = z
+  .object({
+    crew: CrewDetailSchema,
+  })
+  .openapi("CrewDetailResponse");
+
+export const CrewMemberResponseSchema = z
+  .object({
+    member: CrewMemberWithCrewSchema,
+  })
+  .openapi("CrewMemberResponse");
+
+export const ServiceResourceListItemSchema = z
+  .object({
+    id: z.string().openapi({ example: "res_1" }),
+    displayName: z.string().openapi({ example: "Alex Tech" }),
+    email: z.string().email().nullable().openapi({ example: "alex.tech@example.com" }),
+    phone: z.string().nullable().openapi({ example: "+1-555-0111" }),
+    isActive: z.boolean().openapi({ example: true }),
+    orgMemberId: z.string().nullable().openapi({ example: "mem_1" }),
+  })
+  .openapi("ServiceResourceListItem");
+
+export const ServiceResourcesListResponseSchema = z
+  .object({
+    items: z.array(ServiceResourceListItemSchema),
+    page: z.number().int().openapi({ example: 1 }),
+    pageSize: z.number().int().openapi({ example: 25 }),
+    total: z.number().int().openapi({ example: 2 }),
+  })
+  .openapi("ServiceResourcesListResponse", {
+    example: {
+      items: [
+        {
+          id: "res_1",
+          displayName: "Alex Tech",
+          email: "alex.tech@example.com",
+          phone: "+1-555-0111",
+          isActive: true,
+          orgMemberId: "mem_1",
+        },
+      ],
+      page: 1,
+      pageSize: 25,
+      total: 2,
+    },
+  });
+
+export const ServiceResourceSchema = z
+  .object({
+    id: z.string().openapi({ example: "res_1" }),
+    displayName: z.string().openapi({ example: "Alex Tech" }),
+    email: z.string().email().nullable().openapi({ example: "alex.tech@example.com" }),
+    phone: z.string().nullable().openapi({ example: "+1-555-0111" }),
+    isActive: z.boolean().openapi({ example: true }),
+    orgMemberId: z.string().nullable().openapi({ example: "mem_1" }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+  })
+  .openapi("ServiceResource");
+
+export const ServiceResourceResponseSchema = z
+  .object({
+    resource: ServiceResourceSchema,
+  })
+  .openapi("ServiceResourceResponse");
+
+export const BookingRequirementSchema = z
+  .object({
+    id: z.string().openapi({ example: "req_1" }),
+    resourceType: z.string().openapi({ example: "CREW" }),
+    quantity: z.number().int().openapi({ example: 1 }),
+    notes: z.string().nullable().openapi({ example: "Bring ladder" }),
+  })
+  .openapi("BookingRequirement");
+
+export const BookingSchema = z
+  .object({
+    id: z.string().openapi({ example: "booking_1" }),
+    workOrderId: z.string().nullable().openapi({ example: "wo_123" }),
+    crewId: z.string().openapi({ example: "crew_1" }),
+    statusId: z.string().openapi({ example: "status_1" }),
+    scheduledStart: z.string().datetime().nullable().openapi({ example: "2025-01-12T09:00:00Z" }),
+    scheduledEnd: z.string().datetime().nullable().openapi({ example: "2025-01-12T11:00:00Z" }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+  })
+  .openapi("Booking");
+
+export const BookingWithRequirementsSchema = BookingSchema.extend({
+  requirements: z.array(BookingRequirementSchema),
+}).openapi("BookingWithRequirements");
+
+export const BookingResponseSchema = z
+  .object({
+    booking: BookingSchema,
+  })
+  .openapi("BookingResponse");
+
+export const BookingWithRequirementsResponseSchema = z
+  .object({
+    booking: BookingWithRequirementsSchema,
+  })
+  .openapi("BookingWithRequirementsResponse");
+
+export const BookingStatusEventSchema = z
+  .object({
+    id: z.string().openapi({ example: "event_1" }),
+    bookingId: z.string().openapi({ example: "booking_1" }),
+    statusId: z.string().openapi({ example: "status_2" }),
+    orgMemberId: z.string().nullable().openapi({ example: "mem_1" }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T10:00:00Z" }),
+  })
+  .openapi("BookingStatusEvent");
+
+export const BookingStatusChangeResponseSchema = z
+  .object({
+    booking: BookingSchema,
+    event: BookingStatusEventSchema.nullable(),
+  })
+  .openapi("BookingStatusChangeResponse");
+
+export const RouteSchema = z
+  .object({
+    id: z.string().openapi({ example: "route_1" }),
+    crewId: z.string().openapi({ example: "crew_1" }),
+    routeDate: z.string().datetime().openapi({ example: "2025-01-12T00:00:00Z" }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+  })
+  .openapi("Route");
+
+export const RouteResponseSchema = z
+  .object({
+    route: RouteSchema,
+  })
+  .openapi("RouteResponse");
+
+export const RouteStopSchema = z
+  .object({
+    id: z.string().openapi({ example: "stop_1" }),
+    routeId: z.string().openapi({ example: "route_1" }),
+    bookingId: z.string().openapi({ example: "booking_1" }),
+    position: z.number().int().openapi({ example: 1 }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:10:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:10:00Z" }),
+  })
+  .openapi("RouteStop");
+
+export const RouteStopResponseSchema = z
+  .object({
+    stop: RouteStopSchema,
+  })
+  .openapi("RouteStopResponse");
+
+export const RouteStopsResponseSchema = z
+  .object({
+    stops: z.array(RouteStopSchema),
+  })
+  .openapi("RouteStopsResponse");
 
 export const GeoDeviceSchema = z
   .object({
@@ -690,6 +951,12 @@ export const InvoiceDeleteResponseSchema = z
   })
   .openapi("InvoiceDeleteResponse");
 
+export const DeleteResponseSchema = z
+  .object({
+    deleted: z.boolean().openapi({ example: true }),
+  })
+  .openapi("DeleteResponse");
+
 export const CustomersListQueryParamsSchema = CustomersListQuerySchema.openapi(
   "CustomersListQueryParams",
 );
@@ -698,6 +965,40 @@ export const CustomerIdParamsOpenApiSchema = CustomerIdParamsSchema.openapi("Cus
 export const TechniciansListQueryParamsSchema = TechniciansListQuerySchema.openapi(
   "TechniciansListQueryParams",
 );
+
+export const CrewsListQueryParamsSchema = CrewsListQuerySchema.openapi("CrewsListQueryParams");
+export const CrewIdParamsOpenApiSchema = CrewIdParamsSchema.openapi("CrewIdParams");
+export const CrewCreateRequestSchema = CrewCreateSchema.openapi("CrewCreateRequest");
+export const CrewUpdateRequestSchema = CrewUpdateSchema.openapi("CrewUpdateRequest");
+export const CrewMemberCreateRequestSchema =
+  CrewMemberCreateSchema.openapi("CrewMemberCreateRequest");
+export const CrewMemberParamsOpenApiSchema = CrewMemberParamsSchema.openapi("CrewMemberParams");
+
+export const ServiceResourcesListQueryParamsSchema = ServiceResourcesListQuerySchema.openapi(
+  "ServiceResourcesListQueryParams",
+);
+export const ServiceResourceIdParamsOpenApiSchema =
+  ServiceResourceIdParamsSchema.openapi("ServiceResourceIdParams");
+export const ServiceResourceCreateRequestSchema = ServiceResourceCreateSchema.openapi(
+  "ServiceResourceCreateRequest",
+);
+export const ServiceResourceUpdateRequestSchema = ServiceResourceUpdateSchema.openapi(
+  "ServiceResourceUpdateRequest",
+);
+
+export const BookingIdParamsOpenApiSchema = BookingIdParamsSchema.openapi("BookingIdParams");
+export const BookingCreateRequestSchema = BookingCreateSchema.openapi("BookingCreateRequest");
+export const BookingUpdateRequestSchema = BookingUpdateSchema.openapi("BookingUpdateRequest");
+export const BookingStatusChangeRequestSchema = BookingStatusChangeSchema.openapi(
+  "BookingStatusChangeRequest",
+);
+
+export const RouteIdParamsOpenApiSchema = RouteIdParamsSchema.openapi("RouteIdParams");
+export const RouteStopIdParamsOpenApiSchema = RouteStopIdParamsSchema.openapi("RouteStopIdParams");
+export const RouteCreateRequestSchema = RouteCreateSchema.openapi("RouteCreateRequest");
+export const RouteStopAddRequestSchema = RouteStopAddSchema.openapi("RouteStopAddRequest");
+export const RouteStopReorderRequestSchema =
+  RouteStopReorderSchema.openapi("RouteStopReorderRequest");
 
 export const WorkOrdersListQueryParamsSchema = WorkOrdersListQuerySchema.openapi(
   "WorkOrdersListQueryParams",
@@ -783,6 +1084,32 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("CustomerDetailResponse", CustomerDetailResponseSchema);
   registry.register("TechnicianListItem", TechnicianListItemSchema);
   registry.register("TechniciansListResponse", TechniciansListResponseSchema);
+  registry.register("CrewListItem", CrewListItemSchema);
+  registry.register("CrewsListResponse", CrewsListResponseSchema);
+  registry.register("CrewMemberResource", CrewMemberResourceSchema);
+  registry.register("CrewMember", CrewMemberSchema);
+  registry.register("CrewMemberWithCrew", CrewMemberWithCrewSchema);
+  registry.register("Crew", CrewSchema);
+  registry.register("CrewDetail", CrewDetailSchema);
+  registry.register("CrewResponse", CrewResponseSchema);
+  registry.register("CrewDetailResponse", CrewDetailResponseSchema);
+  registry.register("CrewMemberResponse", CrewMemberResponseSchema);
+  registry.register("ServiceResourceListItem", ServiceResourceListItemSchema);
+  registry.register("ServiceResourcesListResponse", ServiceResourcesListResponseSchema);
+  registry.register("ServiceResource", ServiceResourceSchema);
+  registry.register("ServiceResourceResponse", ServiceResourceResponseSchema);
+  registry.register("BookingRequirement", BookingRequirementSchema);
+  registry.register("Booking", BookingSchema);
+  registry.register("BookingWithRequirements", BookingWithRequirementsSchema);
+  registry.register("BookingResponse", BookingResponseSchema);
+  registry.register("BookingWithRequirementsResponse", BookingWithRequirementsResponseSchema);
+  registry.register("BookingStatusEvent", BookingStatusEventSchema);
+  registry.register("BookingStatusChangeResponse", BookingStatusChangeResponseSchema);
+  registry.register("Route", RouteSchema);
+  registry.register("RouteResponse", RouteResponseSchema);
+  registry.register("RouteStop", RouteStopSchema);
+  registry.register("RouteStopResponse", RouteStopResponseSchema);
+  registry.register("RouteStopsResponse", RouteStopsResponseSchema);
   registry.register("GeoDevice", GeoDeviceSchema);
   registry.register("GeoDeviceResponse", GeoDeviceResponseSchema);
   registry.register("GeoPing", GeoPingSchema);
@@ -826,10 +1153,30 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("InvoiceResponse", InvoiceResponseSchema);
   registry.register("InvoiceLineResponse", InvoiceLineResponseSchema);
   registry.register("InvoiceDeleteResponse", InvoiceDeleteResponseSchema);
+  registry.register("DeleteResponse", DeleteResponseSchema);
 
   registry.register("CustomersListQueryParams", CustomersListQueryParamsSchema);
   registry.register("CustomerIdParams", CustomerIdParamsOpenApiSchema);
   registry.register("TechniciansListQueryParams", TechniciansListQueryParamsSchema);
+  registry.register("CrewsListQueryParams", CrewsListQueryParamsSchema);
+  registry.register("CrewIdParams", CrewIdParamsOpenApiSchema);
+  registry.register("CrewCreateRequest", CrewCreateRequestSchema);
+  registry.register("CrewUpdateRequest", CrewUpdateRequestSchema);
+  registry.register("CrewMemberCreateRequest", CrewMemberCreateRequestSchema);
+  registry.register("CrewMemberParams", CrewMemberParamsOpenApiSchema);
+  registry.register("ServiceResourcesListQueryParams", ServiceResourcesListQueryParamsSchema);
+  registry.register("ServiceResourceIdParams", ServiceResourceIdParamsOpenApiSchema);
+  registry.register("ServiceResourceCreateRequest", ServiceResourceCreateRequestSchema);
+  registry.register("ServiceResourceUpdateRequest", ServiceResourceUpdateRequestSchema);
+  registry.register("BookingIdParams", BookingIdParamsOpenApiSchema);
+  registry.register("BookingCreateRequest", BookingCreateRequestSchema);
+  registry.register("BookingUpdateRequest", BookingUpdateRequestSchema);
+  registry.register("BookingStatusChangeRequest", BookingStatusChangeRequestSchema);
+  registry.register("RouteIdParams", RouteIdParamsOpenApiSchema);
+  registry.register("RouteStopIdParams", RouteStopIdParamsOpenApiSchema);
+  registry.register("RouteCreateRequest", RouteCreateRequestSchema);
+  registry.register("RouteStopAddRequest", RouteStopAddRequestSchema);
+  registry.register("RouteStopReorderRequest", RouteStopReorderRequestSchema);
   registry.register("WorkOrdersListQueryParams", WorkOrdersListQueryParamsSchema);
   registry.register("WorkOrderIdParams", WorkOrderIdParamsOpenApiSchema);
   registry.register("WorkTemplatesListQueryParams", WorkTemplatesListQueryParamsSchema);

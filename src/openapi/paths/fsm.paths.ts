@@ -4,38 +4,28 @@ import {
   validationErrorResponse,
 } from "../components/errors.js";
 import {
+  BookingCreateRequestSchema,
+  BookingIdParamsOpenApiSchema,
+  BookingResponseSchema,
+  BookingStatusChangeRequestSchema,
+  BookingStatusChangeResponseSchema,
+  BookingUpdateRequestSchema,
+  BookingWithRequirementsResponseSchema,
+  CrewCreateRequestSchema,
+  CrewDetailResponseSchema,
+  CrewIdParamsOpenApiSchema,
+  CrewMemberCreateRequestSchema,
+  CrewMemberParamsOpenApiSchema,
+  CrewMemberResponseSchema,
+  CrewResponseSchema,
+  CrewUpdateRequestSchema,
+  CrewsListQueryParamsSchema,
+  CrewsListResponseSchema,
   CustomerDetailResponseSchema,
   CustomerIdParamsOpenApiSchema,
   CustomersListQueryParamsSchema,
   CustomersListResponseSchema,
-  TechniciansListQueryParamsSchema,
-  TechniciansListResponseSchema,
-  WorkOrderIncidentCreateRequestSchema,
-  WorkOrderIncidentParamsOpenApiSchema,
-  WorkOrderIncidentResponseSchema,
-  WorkOrderTaskInstantiateRequestSchema,
-  WorkOrderTaskParamsOpenApiSchema,
-  WorkOrderTaskStatusUpdateRequestSchema,
-  WorkOrderTaskStatusUpdateResponseSchema,
-  WorkOrderTasksResponseSchema,
-  WorkTemplateCreateRequestSchema,
-  WorkTemplateIdParamsOpenApiSchema,
-  WorkTemplateResponseSchema,
-  WorkTemplateUpdateRequestSchema,
-  WorkTemplatesListQueryParamsSchema,
-  WorkTemplatesListResponseSchema,
-  WorkOrderDetailResponseSchema,
-  WorkOrderIdParamsOpenApiSchema,
-  WorkOrdersListQueryParamsSchema,
-  WorkOrdersListResponseSchema,
-  ServiceContractCreateRequestSchema,
-  ServiceContractIdParamsOpenApiSchema,
-  ServiceContractMaterializeRequestSchema,
-  ServiceContractOccurrencesResponseSchema,
-  ServiceContractResponseSchema,
-  ServiceContractUpdateRequestSchema,
-  ServiceContractsListQueryParamsSchema,
-  ServiceContractsListResponseSchema,
+  DeleteResponseSchema,
   GeoDeviceCreateRequestSchema,
   GeoDeviceResponseSchema,
   GeoPingBatchIngestRequestSchema,
@@ -55,6 +45,48 @@ import {
   InvoiceStatusUpdateRequestSchema,
   InvoiceWorkOrderIdParamsOpenApiSchema,
   InvoiceWorkOrdersAddRequestSchema,
+  RouteCreateRequestSchema,
+  RouteIdParamsOpenApiSchema,
+  RouteResponseSchema,
+  RouteStopAddRequestSchema,
+  RouteStopIdParamsOpenApiSchema,
+  RouteStopReorderRequestSchema,
+  RouteStopResponseSchema,
+  RouteStopsResponseSchema,
+  ServiceContractCreateRequestSchema,
+  ServiceContractIdParamsOpenApiSchema,
+  ServiceContractMaterializeRequestSchema,
+  ServiceContractOccurrencesResponseSchema,
+  ServiceContractResponseSchema,
+  ServiceContractUpdateRequestSchema,
+  ServiceContractsListQueryParamsSchema,
+  ServiceContractsListResponseSchema,
+  ServiceResourceCreateRequestSchema,
+  ServiceResourceIdParamsOpenApiSchema,
+  ServiceResourceResponseSchema,
+  ServiceResourcesListQueryParamsSchema,
+  ServiceResourcesListResponseSchema,
+  ServiceResourceUpdateRequestSchema,
+  TechniciansListQueryParamsSchema,
+  TechniciansListResponseSchema,
+  WorkOrderDetailResponseSchema,
+  WorkOrderIdParamsOpenApiSchema,
+  WorkOrderIncidentCreateRequestSchema,
+  WorkOrderIncidentParamsOpenApiSchema,
+  WorkOrderIncidentResponseSchema,
+  WorkOrderTaskInstantiateRequestSchema,
+  WorkOrderTaskParamsOpenApiSchema,
+  WorkOrderTaskStatusUpdateRequestSchema,
+  WorkOrderTaskStatusUpdateResponseSchema,
+  WorkOrderTasksResponseSchema,
+  WorkOrdersListQueryParamsSchema,
+  WorkOrdersListResponseSchema,
+  WorkTemplateCreateRequestSchema,
+  WorkTemplateIdParamsOpenApiSchema,
+  WorkTemplateResponseSchema,
+  WorkTemplateUpdateRequestSchema,
+  WorkTemplatesListQueryParamsSchema,
+  WorkTemplatesListResponseSchema,
 } from "../components/fsm.schemas.js";
 import { Tags } from "../tags.js";
 import { z } from "../zod.js";
@@ -117,6 +149,471 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
       },
       400: validationErrorResponse,
       401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/service-resources",
+    summary: "List service resources",
+    description: "Search and paginate service resources by name or email.",
+    tags: [Tags.ServiceResources],
+    security: [{ BearerAuth: [] }],
+    request: { query: ServiceResourcesListQueryParamsSchema },
+    responses: {
+      200: {
+        description: "Service resource list.",
+        content: { "application/json": { schema: ServiceResourcesListResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/service-resources",
+    summary: "Create service resource",
+    description: "Create a new service resource and optionally link an org member.",
+    tags: [Tags.ServiceResources],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: {
+        content: { "application/json": { schema: ServiceResourceCreateRequestSchema } },
+      },
+    },
+    responses: {
+      201: {
+        description: "Service resource created.",
+        content: { "application/json": { schema: ServiceResourceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Org member not found", {
+        message: "Org member not found",
+        code: "ORG_MEMBER_NOT_FOUND",
+      }),
+      409: errorResponse("Org member already assigned", {
+        message: "Org member already assigned",
+        code: "ORG_MEMBER_ASSIGNED",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/service-resources/{id}",
+    summary: "Get service resource",
+    description: "Fetch a service resource profile.",
+    tags: [Tags.ServiceResources],
+    security: [{ BearerAuth: [] }],
+    request: { params: ServiceResourceIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Service resource found.",
+        content: { "application/json": { schema: ServiceResourceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service resource not found", {
+        message: "Service resource not found",
+        code: "SERVICE_RESOURCE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/service-resources/{id}",
+    summary: "Update service resource",
+    description: "Update a service resource profile.",
+    tags: [Tags.ServiceResources],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: ServiceResourceIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: ServiceResourceUpdateRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Service resource updated.",
+        content: { "application/json": { schema: ServiceResourceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service resource not found", {
+        message: "Service resource not found",
+        code: "SERVICE_RESOURCE_NOT_FOUND",
+      }),
+      409: errorResponse("Org member already assigned", {
+        message: "Org member already assigned",
+        code: "ORG_MEMBER_ASSIGNED",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/service-resources/{id}",
+    summary: "Delete service resource",
+    description: "Delete a service resource.",
+    tags: [Tags.ServiceResources],
+    security: [{ BearerAuth: [] }],
+    request: { params: ServiceResourceIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Service resource deleted.",
+        content: { "application/json": { schema: DeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service resource not found", {
+        message: "Service resource not found",
+        code: "SERVICE_RESOURCE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/crews",
+    summary: "List crews",
+    description: "Search and paginate crews.",
+    tags: [Tags.Crews],
+    security: [{ BearerAuth: [] }],
+    request: { query: CrewsListQueryParamsSchema },
+    responses: {
+      200: {
+        description: "Crew list.",
+        content: { "application/json": { schema: CrewsListResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/crews",
+    summary: "Create crew",
+    description: "Create a new crew.",
+    tags: [Tags.Crews],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: { content: { "application/json": { schema: CrewCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Crew created.",
+        content: { "application/json": { schema: CrewResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      409: errorResponse("Crew name unavailable", {
+        message: "Crew name unavailable",
+        code: "CREW_NAME_TAKEN",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/crews/{id}",
+    summary: "Get crew",
+    description: "Fetch a crew with members.",
+    tags: [Tags.Crews],
+    security: [{ BearerAuth: [] }],
+    request: { params: CrewIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Crew found.",
+        content: { "application/json": { schema: CrewDetailResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Crew not found", {
+        message: "Crew not found",
+        code: "CREW_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/crews/{id}",
+    summary: "Update crew",
+    description: "Update a crew.",
+    tags: [Tags.Crews],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: CrewIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: CrewUpdateRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Crew updated.",
+        content: { "application/json": { schema: CrewResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Crew not found", {
+        message: "Crew not found",
+        code: "CREW_NOT_FOUND",
+      }),
+      409: errorResponse("Crew name unavailable", {
+        message: "Crew name unavailable",
+        code: "CREW_NAME_TAKEN",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/crews/{id}",
+    summary: "Delete crew",
+    description: "Delete a crew.",
+    tags: [Tags.Crews],
+    security: [{ BearerAuth: [] }],
+    request: { params: CrewIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Crew deleted.",
+        content: { "application/json": { schema: DeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Crew not found", {
+        message: "Crew not found",
+        code: "CREW_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/crews/{id}/members",
+    summary: "Add crew member",
+    description: "Add a service resource to a crew.",
+    tags: [Tags.Crews],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: CrewIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: CrewMemberCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Crew member added.",
+        content: { "application/json": { schema: CrewMemberResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Crew not found", {
+        message: "Crew not found",
+        code: "CREW_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/crews/{id}/members/{resourceId}",
+    summary: "Remove crew member",
+    description: "Remove a service resource from a crew.",
+    tags: [Tags.Crews],
+    security: [{ BearerAuth: [] }],
+    request: { params: CrewMemberParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Crew member removed.",
+        content: { "application/json": { schema: DeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Crew member not found", {
+        message: "Crew member not found",
+        code: "CREW_MEMBER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/scheduling/bookings",
+    summary: "Create booking",
+    description: "Create a booking for a crew and optional work order.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: { content: { "application/json": { schema: BookingCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Booking created.",
+        content: { "application/json": { schema: BookingWithRequirementsResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Crew not found", {
+        message: "Crew not found",
+        code: "CREW_NOT_FOUND",
+      }),
+      409: errorResponse("Booking already exists for work order", {
+        message: "Booking already exists for work order",
+        code: "BOOKING_ALREADY_EXISTS",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/scheduling/bookings/{id}",
+    summary: "Update booking",
+    description: "Update booking details.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: BookingIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: BookingUpdateRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Booking updated.",
+        content: { "application/json": { schema: BookingResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Booking not found", {
+        message: "Booking not found",
+        code: "BOOKING_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/scheduling/bookings/{id}/status",
+    summary: "Change booking status",
+    description: "Transition booking status and emit a status event.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: BookingIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: BookingStatusChangeRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Booking status updated.",
+        content: { "application/json": { schema: BookingStatusChangeResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Booking not found", {
+        message: "Booking not found",
+        code: "BOOKING_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/scheduling/routes",
+    summary: "Create route",
+    description: "Create a daily route for a crew.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: { content: { "application/json": { schema: RouteCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Route created.",
+        content: { "application/json": { schema: RouteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Crew not found", {
+        message: "Crew not found",
+        code: "CREW_NOT_FOUND",
+      }),
+      409: errorResponse("Route already exists for crew/date", {
+        message: "Route already exists for crew/date",
+        code: "ROUTE_ALREADY_EXISTS",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/scheduling/routes/{id}/stops",
+    summary: "Add route stop",
+    description: "Add a booking to a route.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: RouteIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: RouteStopAddRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Route stop added.",
+        content: { "application/json": { schema: RouteStopResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Route not found", {
+        message: "Route not found",
+        code: "ROUTE_NOT_FOUND",
+      }),
+      409: errorResponse("Booking crew does not match route", {
+        message: "Booking crew does not match route",
+        code: "BOOKING_CREW_MISMATCH",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/scheduling/routes/{id}/stops/reorder",
+    summary: "Reorder route stops",
+    description: "Reorder route stops for a route.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: RouteIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: RouteStopReorderRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Route stops reordered.",
+        content: { "application/json": { schema: RouteStopsResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Route not found", {
+        message: "Route not found",
+        code: "ROUTE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/scheduling/routes/{id}/stops/{stopId}",
+    summary: "Remove route stop",
+    description: "Remove a stop from a route.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: { params: RouteStopIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Route stop removed.",
+        content: { "application/json": { schema: DeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Route stop not found", {
+        message: "Route stop not found",
+        code: "ROUTE_STOP_NOT_FOUND",
+      }),
     },
   });
 
