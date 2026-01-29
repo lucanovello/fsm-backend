@@ -34,6 +34,8 @@ async function resetDomainTables(db: PrismaClient) {
   await db.crewMember.deleteMany();
   await db.resourceSkill.deleteMany();
   await db.crew.deleteMany();
+  await db.geoPing.deleteMany();
+  await db.geoDevice.deleteMany();
   await db.serviceResource.deleteMany();
   await db.skill.deleteMany();
   await db.workOrderLineItem.deleteMany();

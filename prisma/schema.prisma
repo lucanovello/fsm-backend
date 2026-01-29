@@ -99,6 +99,8 @@ model Organization {
   serviceLocations   ServiceLocation[]
   technicians        Technician[]
   serviceResources   ServiceResource[]
+  geoDevices          GeoDevice[]
+  geoPings            GeoPing[]
   skills             Skill[]
   resourceSkills     ResourceSkill[]
   crews              Crew[]
@@ -127,6 +129,7 @@ model Organization {
   integrationConnections IntegrationConnection[]
   externalMappings  ExternalMapping[]
   syncJobs           SyncJob[]
+  geoRetentionDays   Int                 @default(365)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -326,12 +329,55 @@ model ServiceResource {
   isActive           Boolean     @default(true)
   skills             ResourceSkill[]
   crewMemberships    CrewMember[]
+  geoDevices         GeoDevice[]
+  geoPings           GeoPing[]
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
   @@unique([orgId, orgMemberId])
   @@unique([orgId, legacyTechnicianId])
   @@index([orgId])
+}
+
+model GeoDevice {
+  id                String          @id @default(cuid())
+  org               Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId             String
+  serviceResource   ServiceResource @relation(fields: [serviceResourceId], references: [id], onDelete: Cascade)
+  serviceResourceId String
+  deviceIdentifier  String
+  label             String?
+  isActive          Boolean         @default(true)
+  pings             GeoPing[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([orgId, deviceIdentifier])
+  @@index([orgId])
+  @@index([serviceResourceId])
+  @@index([orgId, serviceResourceId])
+}
+
+model GeoPing {
+  id                String          @id @default(cuid())
+  org               Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId             String
+  device            GeoDevice       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  deviceId          String
+  serviceResource   ServiceResource @relation(fields: [serviceResourceId], references: [id], onDelete: Cascade)
+  serviceResourceId String
+  recordedAt        DateTime
+  latitude          Float
+  longitude         Float
+  accuracyMeters    Float?
+  altitudeMeters    Float?
+  speedMps          Float?
+  headingDeg        Float?
+  createdAt         DateTime        @default(now())
+
+  @@index([orgId, recordedAt])
+  @@index([orgId, deviceId, recordedAt])
+  @@index([orgId, serviceResourceId, recordedAt])
 }
 
 model Skill {

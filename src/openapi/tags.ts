@@ -12,6 +12,7 @@ export const Tags = {
   WorkTemplates: "WorkTemplates",
   ServiceContracts: "ServiceContracts",
   Invoices: "Invoices",
+  GeoTracking: "GeoTracking",
 } as const;
 
 export function applyTagMetadata(openapi: Record<string, unknown>): void {
@@ -29,6 +30,7 @@ export function applyTagMetadata(openapi: Record<string, unknown>): void {
     { name: Tags.WorkTemplates, description: "Work template definitions and task checklists." },
     { name: Tags.ServiceContracts, description: "Recurring service contract definitions." },
     { name: Tags.Invoices, description: "Invoice generation and customer billing." },
+    { name: Tags.GeoTracking, description: "Technician geo tracking devices and pings." },
   ];
 
   openapi["x-tagGroups"] = [
@@ -46,6 +48,7 @@ export function applyTagMetadata(openapi: Record<string, unknown>): void {
         Tags.WorkTemplates,
         Tags.ServiceContracts,
         Tags.Invoices,
+        Tags.GeoTracking,
       ],
     },
   ];

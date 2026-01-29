@@ -59,6 +59,8 @@ export const resetDb = async (): Promise<void> => {
     prisma.syncJob.deleteMany(),
     prisma.externalMapping.deleteMany(),
     prisma.integrationConnection.deleteMany(),
+    prisma.geoPing.deleteMany(),
+    prisma.geoDevice.deleteMany(),
     prisma.memberRole.deleteMany(),
     prisma.rolePermission.deleteMany(),
     prisma.orgRole.deleteMany(),
