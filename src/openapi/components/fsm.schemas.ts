@@ -3,6 +3,12 @@ import {
   CustomersListQuerySchema,
 } from "../../modules/customers/dto/customers.dto.js";
 import {
+  GeoDeviceCreateSchema,
+  GeoPingBatchIngestSchema,
+  GeoPingsQuerySchema,
+  GeoResourceIdParamsSchema,
+} from "../../modules/geo-tracking/dto/geoTracking.dto.js";
+import {
   InvoiceCreateSchema,
   InvoiceIdParamsSchema,
   InvoiceLineIdParamsSchema,
@@ -192,6 +198,59 @@ export const TechniciansListResponseSchema = z
       total: 2,
     },
   });
+
+export const GeoDeviceSchema = z
+  .object({
+    id: z.string().openapi({ example: "geo_dev_1" }),
+    serviceResourceId: z.string().openapi({ example: "res_1" }),
+    deviceIdentifier: z.string().openapi({ example: "ios:device-123" }),
+    label: z.string().nullable().openapi({ example: "Primary iPhone" }),
+    isActive: z.boolean().openapi({ example: true }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-01T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-01T09:00:00Z" }),
+  })
+  .openapi("GeoDevice");
+
+export const GeoDeviceResponseSchema = z
+  .object({
+    device: GeoDeviceSchema,
+  })
+  .openapi("GeoDeviceResponse");
+
+export const GeoPingSchema = z
+  .object({
+    id: z.string().openapi({ example: "geo_ping_1" }),
+    deviceId: z.string().openapi({ example: "geo_dev_1" }),
+    serviceResourceId: z.string().openapi({ example: "res_1" }),
+    recordedAt: z.string().datetime().openapi({ example: "2025-01-01T09:00:00Z" }),
+    latitude: z.number().openapi({ example: 43.65 }),
+    longitude: z.number().openapi({ example: -79.38 }),
+    accuracyMeters: z.number().nullable().openapi({ example: 12 }),
+    altitudeMeters: z.number().nullable().openapi({ example: 113 }),
+    speedMps: z.number().nullable().openapi({ example: 8.3 }),
+    headingDeg: z.number().nullable().openapi({ example: 270 }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-01T09:00:01Z" }),
+  })
+  .openapi("GeoPing");
+
+export const GeoPingResponseSchema = z
+  .object({
+    ping: GeoPingSchema.nullable(),
+  })
+  .openapi("GeoPingResponse");
+
+export const GeoPingIngestResponseSchema = z
+  .object({
+    inserted: z.number().int().openapi({ example: 25 }),
+  })
+  .openapi("GeoPingIngestResponse");
+
+export const GeoPingListResponseSchema = z
+  .object({
+    items: z.array(GeoPingSchema),
+    count: z.number().int().openapi({ example: 2 }),
+  })
+  .openapi("GeoPingListResponse");
 
 export const WorkOrderListItemSchema = z
   .object({
@@ -706,6 +765,17 @@ export const WorkOrderTaskStatusUpdateRequestSchema = WorkOrderTaskStatusUpdateS
   "WorkOrderTaskStatusUpdateRequest",
 );
 
+export const GeoDeviceCreateRequestSchema = GeoDeviceCreateSchema.openapi(
+  "GeoDeviceCreateRequest",
+);
+export const GeoPingBatchIngestRequestSchema = GeoPingBatchIngestSchema.openapi(
+  "GeoPingBatchIngestRequest",
+);
+export const GeoResourceIdParamsOpenApiSchema = GeoResourceIdParamsSchema.openapi(
+  "GeoResourceIdParams",
+);
+export const GeoPingsQueryParamsSchema = GeoPingsQuerySchema.openapi("GeoPingsQueryParams");
+
 export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("CustomerListItem", CustomerListItemSchema);
   registry.register("CustomersListResponse", CustomersListResponseSchema);
@@ -716,6 +786,12 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("CustomerDetailResponse", CustomerDetailResponseSchema);
   registry.register("TechnicianListItem", TechnicianListItemSchema);
   registry.register("TechniciansListResponse", TechniciansListResponseSchema);
+  registry.register("GeoDevice", GeoDeviceSchema);
+  registry.register("GeoDeviceResponse", GeoDeviceResponseSchema);
+  registry.register("GeoPing", GeoPingSchema);
+  registry.register("GeoPingResponse", GeoPingResponseSchema);
+  registry.register("GeoPingIngestResponse", GeoPingIngestResponseSchema);
+  registry.register("GeoPingListResponse", GeoPingListResponseSchema);
   registry.register("WorkOrderListItem", WorkOrderListItemSchema);
   registry.register("WorkOrdersListResponse", WorkOrdersListResponseSchema);
   registry.register("WorkOrderNote", WorkOrderNoteSchema);
@@ -773,6 +849,10 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("WorkOrderTaskInstantiateRequest", WorkOrderTaskInstantiateRequestSchema);
   registry.register("WorkOrderTaskParams", WorkOrderTaskParamsOpenApiSchema);
   registry.register("WorkOrderTaskStatusUpdateRequest", WorkOrderTaskStatusUpdateRequestSchema);
+  registry.register("GeoDeviceCreateRequest", GeoDeviceCreateRequestSchema);
+  registry.register("GeoPingBatchIngestRequest", GeoPingBatchIngestRequestSchema);
+  registry.register("GeoResourceIdParams", GeoResourceIdParamsOpenApiSchema);
+  registry.register("GeoPingsQueryParams", GeoPingsQueryParamsSchema);
   registry.register("InvoiceIdParams", InvoiceIdParamsOpenApiSchema);
   registry.register("InvoiceLineIdParams", InvoiceLineIdParamsOpenApiSchema);
   registry.register("InvoiceWorkOrderIdParams", InvoiceWorkOrderIdParamsOpenApiSchema);

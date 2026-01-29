@@ -36,6 +36,14 @@ import {
   ServiceContractUpdateRequestSchema,
   ServiceContractsListQueryParamsSchema,
   ServiceContractsListResponseSchema,
+  GeoDeviceCreateRequestSchema,
+  GeoDeviceResponseSchema,
+  GeoPingBatchIngestRequestSchema,
+  GeoPingIngestResponseSchema,
+  GeoPingListResponseSchema,
+  GeoPingResponseSchema,
+  GeoPingsQueryParamsSchema,
+  GeoResourceIdParamsOpenApiSchema,
   InvoiceCreateRequestSchema,
   InvoiceDeleteResponseSchema,
   InvoiceIdParamsOpenApiSchema,
@@ -694,6 +702,105 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
       404: errorResponse("Service contract not found", {
         message: "Service contract not found",
         code: "SERVICE_CONTRACT_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/geo/devices",
+    summary: "Register geo device",
+    description: "Register a tracking device for a service resource.",
+    tags: [Tags.GeoTracking],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: { content: { "application/json": { schema: GeoDeviceCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Geo device registered.",
+        content: { "application/json": { schema: GeoDeviceResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service resource not found", {
+        message: "Service resource not found",
+        code: "SERVICE_RESOURCE_NOT_FOUND",
+      }),
+      409: errorResponse("Geo device identifier already registered", {
+        message: "Geo device identifier already registered",
+        code: "GEO_DEVICE_IDENTIFIER_TAKEN",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/geo/pings",
+    summary: "Ingest geo pings",
+    description: "Batch ingest geo pings for devices.",
+    tags: [Tags.GeoTracking],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: { content: { "application/json": { schema: GeoPingBatchIngestRequestSchema } } },
+    },
+    responses: {
+      202: {
+        description: "Geo pings accepted.",
+        content: { "application/json": { schema: GeoPingIngestResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Geo device not found", {
+        message: "Geo device not found",
+        code: "GEO_DEVICE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/geo/resources/{resourceId}/latest",
+    summary: "Get latest geo ping",
+    description: "Fetch the latest location for a service resource.",
+    tags: [Tags.GeoTracking],
+    security: [{ BearerAuth: [] }],
+    request: { params: GeoResourceIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Latest geo ping.",
+        content: { "application/json": { schema: GeoPingResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service resource not found", {
+        message: "Service resource not found",
+        code: "SERVICE_RESOURCE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/geo/resources/{resourceId}/pings",
+    summary: "List geo pings",
+    description: "List geo pings for a service resource.",
+    tags: [Tags.GeoTracking],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: GeoResourceIdParamsOpenApiSchema,
+      query: GeoPingsQueryParamsSchema,
+    },
+    responses: {
+      200: {
+        description: "Geo pings.",
+        content: { "application/json": { schema: GeoPingListResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service resource not found", {
+        message: "Service resource not found",
+        code: "SERVICE_RESOURCE_NOT_FOUND",
       }),
     },
   });

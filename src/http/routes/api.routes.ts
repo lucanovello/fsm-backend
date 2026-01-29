@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { crewsRoutes } from "../../modules/crews/crews.routes.js";
 import { customersRoutes } from "../../modules/customers/customers.routes.js";
+import { geoTrackingRoutes } from "../../modules/geo-tracking/geoTracking.routes.js";
 import { integrationsRoutes } from "../../modules/integrations/integrations.routes.js";
 import { invoicesRoutes } from "../../modules/invoices/invoices.routes.js";
 import { organizationsRoutes } from "../../modules/organizations/organizations.routes.js";
@@ -22,6 +23,7 @@ apiRoutes.use(resolveOrgContext());
 apiRoutes.use("/organizations", organizationsRoutes);
 apiRoutes.use("/customers", customersRoutes);
 apiRoutes.use("/service-resources", serviceResourcesRoutes);
+apiRoutes.use("/geo", geoTrackingRoutes);
 apiRoutes.use("/service-contracts", serviceContractsRoutes);
 apiRoutes.use("/invoices", invoicesRoutes);
 apiRoutes.use("/integrations", integrationsRoutes);
