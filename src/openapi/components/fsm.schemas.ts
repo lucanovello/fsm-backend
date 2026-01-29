@@ -1,8 +1,4 @@
 import {
-  CustomerIdParamsSchema,
-  CustomersListQuerySchema,
-} from "../../modules/customers/dto/customers.dto.js";
-import {
   CrewCreateSchema,
   CrewIdParamsSchema,
   CrewMemberCreateSchema,
@@ -10,6 +6,10 @@ import {
   CrewsListQuerySchema,
   CrewUpdateSchema,
 } from "../../modules/crews/dto/crews.dto.js";
+import {
+  CustomerIdParamsSchema,
+  CustomersListQuerySchema,
+} from "../../modules/customers/dto/customers.dto.js";
 import {
   GeoDeviceCreateSchema,
   GeoPingBatchIngestSchema,
@@ -28,19 +28,6 @@ import {
   InvoiceWorkOrdersAddSchema,
 } from "../../modules/invoices/dto/invoices.dto.js";
 import {
-  ServiceContractCreateSchema,
-  ServiceContractIdParamsSchema,
-  ServiceContractMaterializeSchema,
-  ServiceContractsListQuerySchema,
-  ServiceContractUpdateSchema,
-} from "../../modules/service-contracts/dto/serviceContracts.dto.js";
-import {
-  ServiceResourceCreateSchema,
-  ServiceResourceIdParamsSchema,
-  ServiceResourcesListQuerySchema,
-  ServiceResourceUpdateSchema,
-} from "../../modules/service-resources/dto/serviceResources.dto.js";
-import {
   BookingCreateSchema,
   BookingIdParamsSchema,
   BookingStatusChangeSchema,
@@ -53,6 +40,19 @@ import {
   RouteStopIdParamsSchema,
   RouteStopReorderSchema,
 } from "../../modules/scheduling/dto/routes.dto.js";
+import {
+  ServiceContractCreateSchema,
+  ServiceContractIdParamsSchema,
+  ServiceContractMaterializeSchema,
+  ServiceContractsListQuerySchema,
+  ServiceContractUpdateSchema,
+} from "../../modules/service-contracts/dto/serviceContracts.dto.js";
+import {
+  ServiceResourceCreateSchema,
+  ServiceResourceIdParamsSchema,
+  ServiceResourcesListQuerySchema,
+  ServiceResourceUpdateSchema,
+} from "../../modules/service-resources/dto/serviceResources.dto.js";
 import { TechniciansListQuerySchema } from "../../modules/technicians/dto/technicians.dto.js";
 import {
   WorkOrderIdParamsSchema,
