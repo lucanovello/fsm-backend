@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fsm-backend-config
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  LOG_LEVEL: "info"
+  METRICS_ENABLED: "false"
+  METRICS_GUARD: "cidr"
+  METRICS_GUARD_ALLOWLIST: "10.0.0.0/8"
+  CORS_ORIGINS: "https://example.com"
+  TRUST_PROXY: "1"

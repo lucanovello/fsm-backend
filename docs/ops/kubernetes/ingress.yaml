@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fsm-backend
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "2m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fsm-backend
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - api.example.com
+      secretName: fsm-backend-tls
