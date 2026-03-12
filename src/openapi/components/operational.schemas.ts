@@ -35,9 +35,21 @@ http_requests_total{method="GET",route="/health",status_code="200"} 1`,
   description: "Prometheus exposition format payload.",
 });
 
+export const OpenApiDocumentSchema = z
+  .record(z.string(), z.unknown())
+  .openapi("OpenApiDocument", {
+    description: "Generated OpenAPI JSON document.",
+  });
+
+export const DocsHtmlSchema = z.string().openapi("SwaggerUiHtml", {
+  description: "Swagger UI HTML page.",
+});
+
 export function registerOperationalSchemas(registry: OpenAPIRegistry): void {
   registry.register("StatusOk", StatusOkSchema);
   registry.register("StatusReady", ReadySchema);
   registry.register("VersionResponse", VersionSchema);
   registry.register("PrometheusMetrics", MetricsTextSchema);
+  registry.register("OpenApiDocument", OpenApiDocumentSchema);
+  registry.register("SwaggerUiHtml", DocsHtmlSchema);
 }

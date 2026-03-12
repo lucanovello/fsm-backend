@@ -105,6 +105,11 @@ const EnvSchema = z
     METRICS_GUARD_SECRET: z.string().optional(),
     METRICS_GUARD_ALLOWLIST: z.string().optional(),
     SESSION_CLEANUP_INTERVAL_MINUTES: z.coerce.number().int().positive().default(60),
+    GEO_PING_CLEANUP_INTERVAL_MINUTES: z.coerce.number().int().positive().default(1440),
+    SYNC_JOB_WORKER_ENABLED: z.string().optional(),
+    SYNC_JOB_WORKER_INTERVAL_SECONDS: z.coerce.number().int().positive().default(30),
+    SYNC_JOB_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+    SYNC_JOB_RETRY_BASE_SECONDS: z.coerce.number().int().positive().default(30),
     REQUEST_BODY_LIMIT: z.string().default("100kb"),
     HTTP_SERVER_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
     HTTP_SERVER_HEADERS_TIMEOUT_MS: z.coerce.number().int().positive().default(60_000),
@@ -261,6 +266,13 @@ export type AppConfig = z.infer<typeof EnvSchema> & {
     authBaseUrl: string;
     tokenUrl: string;
   };
+  geoPingCleanupIntervalMs: number;
+  syncJobWorker: {
+    enabled: boolean;
+    intervalMs: number;
+    maxAttempts: number;
+    retryBaseMs: number;
+  };
 };
 
 export type MetricsGuardConfig =
@@ -343,6 +355,16 @@ export function getConfig(): AppConfig {
     minBytes: cfg.RESPONSE_COMPRESSION_MIN_BYTES,
   };
 
+  const geoPingCleanupIntervalMs = cfg.GEO_PING_CLEANUP_INTERVAL_MINUTES * 60 * 1000;
+
+  const syncWorkerEnabledEnv = cfg.SYNC_JOB_WORKER_ENABLED;
+  const syncJobWorker = {
+    enabled: syncWorkerEnabledEnv ? parseBooleanEnv(syncWorkerEnabledEnv) : false,
+    intervalMs: cfg.SYNC_JOB_WORKER_INTERVAL_SECONDS * 1000,
+    maxAttempts: cfg.SYNC_JOB_MAX_ATTEMPTS,
+    retryBaseMs: cfg.SYNC_JOB_RETRY_BASE_SECONDS * 1000,
+  };
+
   cached = {
     ...cfg,
     corsOriginsParsed,
@@ -354,6 +376,8 @@ export function getConfig(): AppConfig {
     smtp,
     auth,
     qbo,
+    geoPingCleanupIntervalMs,
+    syncJobWorker,
   };
   return cached!;
 }

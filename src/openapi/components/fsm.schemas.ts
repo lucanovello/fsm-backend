@@ -41,6 +41,12 @@ import {
   RouteStopReorderSchema,
 } from "../../modules/scheduling/dto/routes.dto.js";
 import {
+  BookingStatusCreateSchema,
+  BookingStatusIdParamsSchema,
+  BookingStatusesListQuerySchema,
+  BookingStatusUpdateSchema,
+} from "../../modules/scheduling/dto/statuses.dto.js";
+import {
   ServiceContractCreateSchema,
   ServiceContractIdParamsSchema,
   ServiceContractMaterializeSchema,
@@ -48,16 +54,34 @@ import {
   ServiceContractUpdateSchema,
 } from "../../modules/service-contracts/dto/serviceContracts.dto.js";
 import {
+  ServiceLocationCreateSchema,
+  ServiceLocationIdParamsSchema,
+  ServiceLocationsListQuerySchema,
+  ServiceLocationUpdateSchema,
+} from "../../modules/service-locations/dto/serviceLocations.dto.js";
+import {
   ServiceResourceCreateSchema,
   ServiceResourceIdParamsSchema,
   ServiceResourcesListQuerySchema,
   ServiceResourceUpdateSchema,
 } from "../../modules/service-resources/dto/serviceResources.dto.js";
+import {
+  ResourceSkillsParamsSchema,
+  ResourceSkillsReplaceSchema,
+  SkillCreateSchema,
+  SkillIdParamsSchema,
+  SkillsListQuerySchema,
+  SkillUpdateSchema,
+} from "../../modules/skills/dto/skills.dto.js";
 import { TechniciansListQuerySchema } from "../../modules/technicians/dto/technicians.dto.js";
 import {
   WorkOrderIdParamsSchema,
   WorkOrderIncidentCreateSchema,
   WorkOrderIncidentParamsSchema,
+  WorkOrderLineItemCreateSchema,
+  WorkOrderLineItemParamsSchema,
+  WorkOrderLineItemUpdateSchema,
+  WorkOrderNoteCreateSchema,
   WorkOrderTaskInstantiateSchema,
   WorkOrderTaskParamsSchema,
   WorkOrderTaskStatusUpdateSchema,
@@ -366,6 +390,168 @@ export const ServiceResourceResponseSchema = z
   })
   .openapi("ServiceResourceResponse");
 
+export const ServiceLocationCustomerSchema = z
+  .object({
+    id: z.string().openapi({ example: "cust_1" }),
+    name: z.string().openapi({ example: "Acme Corp" }),
+  })
+  .openapi("ServiceLocationCustomer");
+
+export const ServiceLocationListItemSchema = z
+  .object({
+    id: z.string().openapi({ example: "loc_1" }),
+    customerId: z.string().openapi({ example: "cust_1" }),
+    label: z.string().nullable().openapi({ example: "Head Office" }),
+    addressLine1: z.string().openapi({ example: "100 King St W" }),
+    city: z.string().openapi({ example: "Toronto" }),
+    province: z.string().nullable().openapi({ example: "ON" }),
+    country: z.string().nullable().openapi({ example: "CA" }),
+    latitude: z.number().nullable().openapi({ example: 43.6487 }),
+    longitude: z.number().nullable().openapi({ example: -79.3854 }),
+    customer: ServiceLocationCustomerSchema,
+  })
+  .openapi("ServiceLocationListItem");
+
+export const ServiceLocationsListResponseSchema = z
+  .object({
+    items: z.array(ServiceLocationListItemSchema),
+    page: z.number().int().openapi({ example: 1 }),
+    pageSize: z.number().int().openapi({ example: 25 }),
+    total: z.number().int().openapi({ example: 12 }),
+  })
+  .openapi("ServiceLocationsListResponse");
+
+export const ServiceLocationSchema = z
+  .object({
+    id: z.string().openapi({ example: "loc_1" }),
+    customerId: z.string().openapi({ example: "cust_1" }),
+    label: z.string().nullable().openapi({ example: "Head Office" }),
+    addressLine1: z.string().openapi({ example: "100 King St W" }),
+    addressLine2: z.string().nullable().openapi({ example: "Suite 1200" }),
+    city: z.string().openapi({ example: "Toronto" }),
+    province: z.string().nullable().openapi({ example: "ON" }),
+    postalCode: z.string().nullable().openapi({ example: "M5X 1A9" }),
+    country: z.string().nullable().openapi({ example: "CA" }),
+    latitude: z.number().nullable().openapi({ example: 43.6487 }),
+    longitude: z.number().nullable().openapi({ example: -79.3854 }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    customer: ServiceLocationCustomerSchema,
+  })
+  .openapi("ServiceLocation");
+
+export const ServiceLocationResponseSchema = z
+  .object({
+    location: ServiceLocationSchema,
+  })
+  .openapi("ServiceLocationResponse");
+
+export const SkillResourceSummarySchema = z
+  .object({
+    id: z.string().openapi({ example: "res_1" }),
+    displayName: z.string().openapi({ example: "Alex Tech" }),
+    email: z.string().email().nullable().openapi({ example: "alex.tech@example.com" }),
+    phone: z.string().nullable().openapi({ example: "+1-555-0111" }),
+    isActive: z.boolean().openapi({ example: true }),
+  })
+  .openapi("SkillResourceSummary");
+
+export const SkillListItemSchema = z
+  .object({
+    id: z.string().openapi({ example: "skill_1" }),
+    name: z.string().openapi({ example: "HVAC Repair" }),
+    description: z.string().nullable().openapi({ example: "Handles rooftop and split HVAC systems." }),
+    resourceCount: z.number().int().openapi({ example: 5 }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+  })
+  .openapi("SkillListItem");
+
+export const SkillsListResponseSchema = z
+  .object({
+    items: z.array(SkillListItemSchema),
+    page: z.number().int().openapi({ example: 1 }),
+    pageSize: z.number().int().openapi({ example: 25 }),
+    total: z.number().int().openapi({ example: 8 }),
+  })
+  .openapi("SkillsListResponse");
+
+export const SkillSchema = z
+  .object({
+    id: z.string().openapi({ example: "skill_1" }),
+    name: z.string().openapi({ example: "HVAC Repair" }),
+    description: z.string().nullable().openapi({ example: "Handles rooftop and split HVAC systems." }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+  })
+  .openapi("Skill");
+
+export const SkillResponseSchema = z
+  .object({
+    skill: SkillSchema,
+  })
+  .openapi("SkillResponse");
+
+export const SkillDetailSchema = SkillSchema.extend({
+  resources: z.array(SkillResourceSummarySchema),
+}).openapi("SkillDetail");
+
+export const SkillDetailResponseSchema = z
+  .object({
+    skill: SkillDetailSchema,
+  })
+  .openapi("SkillDetailResponse");
+
+export const ResourceSkillItemSchema = z
+  .object({
+    id: z.string().openapi({ example: "resource_skill_1" }),
+    skillId: z.string().openapi({ example: "skill_1" }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    skill: z
+      .object({
+        id: z.string().openapi({ example: "skill_1" }),
+        name: z.string().openapi({ example: "HVAC Repair" }),
+        description: z
+          .string()
+          .nullable()
+          .openapi({ example: "Handles rooftop and split HVAC systems." }),
+      })
+      .openapi("ResourceSkillSummary"),
+  })
+  .openapi("ResourceSkillItem");
+
+export const ResourceSkillsResponseSchema = z
+  .object({
+    resourceId: z.string().openapi({ example: "res_1" }),
+    skills: z.array(ResourceSkillItemSchema),
+  })
+  .openapi("ResourceSkillsResponse");
+
+export const BookingStatusSchema = z
+  .object({
+    id: z.string().openapi({ example: "status_1" }),
+    name: z.string().openapi({ example: "Scheduled" }),
+    description: z.string().nullable().openapi({ example: "Booking is scheduled and assigned." }),
+    isDefault: z.boolean().openapi({ example: false }),
+    isActive: z.boolean().openapi({ example: true }),
+    sortOrder: z.number().int().openapi({ example: 10 }),
+    createdAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+    updatedAt: z.string().datetime().openapi({ example: "2025-01-10T09:00:00Z" }),
+  })
+  .openapi("BookingStatus");
+
+export const BookingStatusesResponseSchema = z
+  .object({
+    statuses: z.array(BookingStatusSchema),
+  })
+  .openapi("BookingStatusesResponse");
+
+export const BookingStatusResponseSchema = z
+  .object({
+    status: BookingStatusSchema,
+  })
+  .openapi("BookingStatusResponse");
+
 export const BookingRequirementSchema = z
   .object({
     id: z.string().openapi({ example: "req_1" }),
@@ -585,6 +771,39 @@ export const WorkOrderLineItemSchema = z
     unitPriceCents: z.number().int().openapi({ example: 1299 }),
   })
   .openapi("WorkOrderLineItem");
+
+export const WorkOrderNoteRecordSchema = WorkOrderNoteSchema.extend({
+  updatedAt: z.string().datetime().openapi({ example: "2025-04-12T09:05:00Z" }),
+}).openapi("WorkOrderNoteRecord");
+
+export const WorkOrderLineItemRecordSchema = WorkOrderLineItemSchema.extend({
+  createdAt: z.string().datetime().openapi({ example: "2025-04-12T09:05:00Z" }),
+  updatedAt: z.string().datetime().openapi({ example: "2025-04-12T09:05:00Z" }),
+}).openapi("WorkOrderLineItemRecord");
+
+export const WorkOrderNotesResponseSchema = z
+  .object({
+    notes: z.array(WorkOrderNoteRecordSchema),
+  })
+  .openapi("WorkOrderNotesResponse");
+
+export const WorkOrderNoteResponseSchema = z
+  .object({
+    note: WorkOrderNoteRecordSchema,
+  })
+  .openapi("WorkOrderNoteResponse");
+
+export const WorkOrderLineItemsResponseSchema = z
+  .object({
+    lineItems: z.array(WorkOrderLineItemRecordSchema),
+  })
+  .openapi("WorkOrderLineItemsResponse");
+
+export const WorkOrderLineItemResponseSchema = z
+  .object({
+    lineItem: WorkOrderLineItemRecordSchema,
+  })
+  .openapi("WorkOrderLineItemResponse");
 
 export const WorkOrderDetailResponseSchema = z
   .object({
@@ -986,11 +1205,44 @@ export const ServiceResourceUpdateRequestSchema = ServiceResourceUpdateSchema.op
   "ServiceResourceUpdateRequest",
 );
 
+export const ServiceLocationsListQueryParamsSchema = ServiceLocationsListQuerySchema.openapi(
+  "ServiceLocationsListQueryParams",
+);
+export const ServiceLocationIdParamsOpenApiSchema =
+  ServiceLocationIdParamsSchema.openapi("ServiceLocationIdParams");
+export const ServiceLocationCreateRequestSchema = ServiceLocationCreateSchema.openapi(
+  "ServiceLocationCreateRequest",
+);
+export const ServiceLocationUpdateRequestSchema = ServiceLocationUpdateSchema.openapi(
+  "ServiceLocationUpdateRequest",
+);
+
+export const SkillsListQueryParamsSchema = SkillsListQuerySchema.openapi("SkillsListQueryParams");
+export const SkillIdParamsOpenApiSchema = SkillIdParamsSchema.openapi("SkillIdParams");
+export const SkillCreateRequestSchema = SkillCreateSchema.openapi("SkillCreateRequest");
+export const SkillUpdateRequestSchema = SkillUpdateSchema.openapi("SkillUpdateRequest");
+export const ResourceSkillsParamsOpenApiSchema =
+  ResourceSkillsParamsSchema.openapi("ResourceSkillsParams");
+export const ResourceSkillsReplaceRequestSchema = ResourceSkillsReplaceSchema.openapi(
+  "ResourceSkillsReplaceRequest",
+);
+
 export const BookingIdParamsOpenApiSchema = BookingIdParamsSchema.openapi("BookingIdParams");
 export const BookingCreateRequestSchema = BookingCreateSchema.openapi("BookingCreateRequest");
 export const BookingUpdateRequestSchema = BookingUpdateSchema.openapi("BookingUpdateRequest");
 export const BookingStatusChangeRequestSchema = BookingStatusChangeSchema.openapi(
   "BookingStatusChangeRequest",
+);
+export const BookingStatusesListQueryParamsSchema = BookingStatusesListQuerySchema.openapi(
+  "BookingStatusesListQueryParams",
+);
+export const BookingStatusIdParamsOpenApiSchema =
+  BookingStatusIdParamsSchema.openapi("BookingStatusIdParams");
+export const BookingStatusCreateRequestSchema = BookingStatusCreateSchema.openapi(
+  "BookingStatusCreateRequest",
+);
+export const BookingStatusUpdateRequestSchema = BookingStatusUpdateSchema.openapi(
+  "BookingStatusUpdateRequest",
 );
 
 export const RouteIdParamsOpenApiSchema = RouteIdParamsSchema.openapi("RouteIdParams");
@@ -1065,6 +1317,18 @@ export const WorkOrderTaskParamsOpenApiSchema =
 export const WorkOrderTaskStatusUpdateRequestSchema = WorkOrderTaskStatusUpdateSchema.openapi(
   "WorkOrderTaskStatusUpdateRequest",
 );
+export const WorkOrderNoteCreateRequestSchema = WorkOrderNoteCreateSchema.openapi(
+  "WorkOrderNoteCreateRequest",
+);
+export const WorkOrderLineItemCreateRequestSchema = WorkOrderLineItemCreateSchema.openapi(
+  "WorkOrderLineItemCreateRequest",
+);
+export const WorkOrderLineItemUpdateRequestSchema = WorkOrderLineItemUpdateSchema.openapi(
+  "WorkOrderLineItemUpdateRequest",
+);
+export const WorkOrderLineItemParamsOpenApiSchema = WorkOrderLineItemParamsSchema.openapi(
+  "WorkOrderLineItemParams",
+);
 
 export const GeoDeviceCreateRequestSchema = GeoDeviceCreateSchema.openapi("GeoDeviceCreateRequest");
 export const GeoPingBatchIngestRequestSchema = GeoPingBatchIngestSchema.openapi(
@@ -1098,6 +1362,23 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("ServiceResourcesListResponse", ServiceResourcesListResponseSchema);
   registry.register("ServiceResource", ServiceResourceSchema);
   registry.register("ServiceResourceResponse", ServiceResourceResponseSchema);
+  registry.register("ServiceLocationCustomer", ServiceLocationCustomerSchema);
+  registry.register("ServiceLocationListItem", ServiceLocationListItemSchema);
+  registry.register("ServiceLocationsListResponse", ServiceLocationsListResponseSchema);
+  registry.register("ServiceLocation", ServiceLocationSchema);
+  registry.register("ServiceLocationResponse", ServiceLocationResponseSchema);
+  registry.register("SkillResourceSummary", SkillResourceSummarySchema);
+  registry.register("SkillListItem", SkillListItemSchema);
+  registry.register("SkillsListResponse", SkillsListResponseSchema);
+  registry.register("Skill", SkillSchema);
+  registry.register("SkillResponse", SkillResponseSchema);
+  registry.register("SkillDetail", SkillDetailSchema);
+  registry.register("SkillDetailResponse", SkillDetailResponseSchema);
+  registry.register("ResourceSkillItem", ResourceSkillItemSchema);
+  registry.register("ResourceSkillsResponse", ResourceSkillsResponseSchema);
+  registry.register("BookingStatus", BookingStatusSchema);
+  registry.register("BookingStatusesResponse", BookingStatusesResponseSchema);
+  registry.register("BookingStatusResponse", BookingStatusResponseSchema);
   registry.register("BookingRequirement", BookingRequirementSchema);
   registry.register("Booking", BookingSchema);
   registry.register("BookingWithRequirements", BookingWithRequirementsSchema);
@@ -1119,7 +1400,13 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("WorkOrderListItem", WorkOrderListItemSchema);
   registry.register("WorkOrdersListResponse", WorkOrdersListResponseSchema);
   registry.register("WorkOrderNote", WorkOrderNoteSchema);
+  registry.register("WorkOrderNoteRecord", WorkOrderNoteRecordSchema);
+  registry.register("WorkOrderNotesResponse", WorkOrderNotesResponseSchema);
+  registry.register("WorkOrderNoteResponse", WorkOrderNoteResponseSchema);
   registry.register("WorkOrderLineItem", WorkOrderLineItemSchema);
+  registry.register("WorkOrderLineItemRecord", WorkOrderLineItemRecordSchema);
+  registry.register("WorkOrderLineItemsResponse", WorkOrderLineItemsResponseSchema);
+  registry.register("WorkOrderLineItemResponse", WorkOrderLineItemResponseSchema);
   registry.register("WorkOrderDetailResponse", WorkOrderDetailResponseSchema);
   registry.register("TaskStatus", TaskStatusSchema);
   registry.register("CompletionReadiness", CompletionReadinessSchema);
@@ -1168,10 +1455,24 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("ServiceResourceIdParams", ServiceResourceIdParamsOpenApiSchema);
   registry.register("ServiceResourceCreateRequest", ServiceResourceCreateRequestSchema);
   registry.register("ServiceResourceUpdateRequest", ServiceResourceUpdateRequestSchema);
+  registry.register("ServiceLocationsListQueryParams", ServiceLocationsListQueryParamsSchema);
+  registry.register("ServiceLocationIdParams", ServiceLocationIdParamsOpenApiSchema);
+  registry.register("ServiceLocationCreateRequest", ServiceLocationCreateRequestSchema);
+  registry.register("ServiceLocationUpdateRequest", ServiceLocationUpdateRequestSchema);
+  registry.register("SkillsListQueryParams", SkillsListQueryParamsSchema);
+  registry.register("SkillIdParams", SkillIdParamsOpenApiSchema);
+  registry.register("SkillCreateRequest", SkillCreateRequestSchema);
+  registry.register("SkillUpdateRequest", SkillUpdateRequestSchema);
+  registry.register("ResourceSkillsParams", ResourceSkillsParamsOpenApiSchema);
+  registry.register("ResourceSkillsReplaceRequest", ResourceSkillsReplaceRequestSchema);
   registry.register("BookingIdParams", BookingIdParamsOpenApiSchema);
   registry.register("BookingCreateRequest", BookingCreateRequestSchema);
   registry.register("BookingUpdateRequest", BookingUpdateRequestSchema);
   registry.register("BookingStatusChangeRequest", BookingStatusChangeRequestSchema);
+  registry.register("BookingStatusesListQueryParams", BookingStatusesListQueryParamsSchema);
+  registry.register("BookingStatusIdParams", BookingStatusIdParamsOpenApiSchema);
+  registry.register("BookingStatusCreateRequest", BookingStatusCreateRequestSchema);
+  registry.register("BookingStatusUpdateRequest", BookingStatusUpdateRequestSchema);
   registry.register("RouteIdParams", RouteIdParamsOpenApiSchema);
   registry.register("RouteStopIdParams", RouteStopIdParamsOpenApiSchema);
   registry.register("RouteCreateRequest", RouteCreateRequestSchema);
@@ -1193,6 +1494,10 @@ export function registerFsmSchemas(registry: OpenAPIRegistry): void {
   registry.register("WorkOrderTaskInstantiateRequest", WorkOrderTaskInstantiateRequestSchema);
   registry.register("WorkOrderTaskParams", WorkOrderTaskParamsOpenApiSchema);
   registry.register("WorkOrderTaskStatusUpdateRequest", WorkOrderTaskStatusUpdateRequestSchema);
+  registry.register("WorkOrderNoteCreateRequest", WorkOrderNoteCreateRequestSchema);
+  registry.register("WorkOrderLineItemCreateRequest", WorkOrderLineItemCreateRequestSchema);
+  registry.register("WorkOrderLineItemUpdateRequest", WorkOrderLineItemUpdateRequestSchema);
+  registry.register("WorkOrderLineItemParams", WorkOrderLineItemParamsOpenApiSchema);
   registry.register("GeoDeviceCreateRequest", GeoDeviceCreateRequestSchema);
   registry.register("GeoPingBatchIngestRequest", GeoPingBatchIngestRequestSchema);
   registry.register("GeoResourceIdParams", GeoResourceIdParamsOpenApiSchema);

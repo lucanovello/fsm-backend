@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 import { getConfig } from "../../../config/index.js";
 import { prisma } from "../../../infrastructure/db/prisma.js";
@@ -272,6 +272,27 @@ export async function handleQuickBooksWebhook(params: {
     return { queued: false };
   }
 
+  const payload = {
+    idempotencyKey: createHash("sha256").update(rawBody).digest("hex"),
+    event: params.body ?? null,
+  };
+
+  const existingJob = await prisma.syncJob.findFirst({
+    where: {
+      orgId: connection.orgId,
+      provider: "QUICKBOOKS",
+      connectionId: connection.id,
+      type: "WEBHOOK",
+      status: { in: ["PENDING", "PROCESSING", "COMPLETED"] },
+      payload: { equals: payload },
+    },
+    select: { id: true },
+  });
+
+  if (existingJob) {
+    return { queued: false };
+  }
+
   const job = await prisma.syncJob.create({
     data: {
       orgId: connection.orgId,
@@ -279,7 +300,7 @@ export async function handleQuickBooksWebhook(params: {
       connectionId: connection.id,
       type: "WEBHOOK",
       status: "PENDING",
-      payload: params.body ?? {},
+      payload,
       scheduledAt: new Date(),
     },
   });

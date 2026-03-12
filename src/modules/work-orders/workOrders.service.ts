@@ -5,6 +5,9 @@ import { AppError } from "../../shared/errors.js";
 
 import type {
   WorkOrderIncidentCreateInput,
+  WorkOrderLineItemCreateInput,
+  WorkOrderLineItemUpdateInput,
+  WorkOrderNoteCreateInput,
   WorkOrderTaskInstantiateInput,
   WorkOrderTaskStatusUpdateInput,
   WorkOrdersListQuery,
@@ -85,6 +88,9 @@ const tasksAlreadyInstantiated = () =>
 
 const taskNotFound = () =>
   new AppError("Work order task not found", 404, { code: "WORK_ORDER_TASK_NOT_FOUND" });
+
+const lineItemNotFound = () =>
+  new AppError("Work order line item not found", 404, { code: "WORK_ORDER_LINE_ITEM_NOT_FOUND" });
 
 function parseStatuses(status?: string): WorkOrderStatus[] | undefined {
   if (!status) return undefined;
@@ -487,4 +493,152 @@ export async function getWorkOrderCompletionReadiness(orgId: string, workOrderId
   });
 
   return computeCompletionReadiness(tasks);
+}
+
+export async function listWorkOrderNotes(orgId: string, workOrderId: string) {
+  await ensureWorkOrder(orgId, workOrderId);
+
+  const notes = await prisma.workNote.findMany({
+    where: { orgId, workOrderId },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      body: true,
+      createdAt: true,
+      updatedAt: true,
+      author: { select: { id: true, email: true } },
+    },
+  });
+
+  return { notes };
+}
+
+export async function addWorkOrderNote(
+  orgId: string,
+  workOrderId: string,
+  authorUserId: string,
+  input: WorkOrderNoteCreateInput,
+) {
+  await ensureWorkOrder(orgId, workOrderId);
+
+  const note = await prisma.workNote.create({
+    data: {
+      orgId,
+      workOrderId,
+      authorUserId,
+      body: input.body,
+    },
+    select: {
+      id: true,
+      body: true,
+      createdAt: true,
+      updatedAt: true,
+      author: { select: { id: true, email: true } },
+    },
+  });
+
+  return { note };
+}
+
+export async function listWorkOrderLineItems(orgId: string, workOrderId: string) {
+  await ensureWorkOrder(orgId, workOrderId);
+
+  const lineItems = await prisma.workOrderLineItem.findMany({
+    where: { orgId, workOrderId },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      description: true,
+      quantity: true,
+      unitPriceCents: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return { lineItems };
+}
+
+export async function addWorkOrderLineItem(
+  orgId: string,
+  workOrderId: string,
+  input: WorkOrderLineItemCreateInput,
+) {
+  await ensureWorkOrder(orgId, workOrderId);
+
+  const lineItem = await prisma.workOrderLineItem.create({
+    data: {
+      orgId,
+      workOrderId,
+      description: input.description,
+      quantity: input.quantity,
+      unitPriceCents: input.unitPriceCents,
+    },
+    select: {
+      id: true,
+      description: true,
+      quantity: true,
+      unitPriceCents: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return { lineItem };
+}
+
+export async function updateWorkOrderLineItem(
+  orgId: string,
+  workOrderId: string,
+  lineItemId: string,
+  input: WorkOrderLineItemUpdateInput,
+) {
+  await ensureWorkOrder(orgId, workOrderId);
+
+  const existing = await prisma.workOrderLineItem.findFirst({
+    where: { id: lineItemId, orgId, workOrderId },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    throw lineItemNotFound();
+  }
+
+  const data: Prisma.WorkOrderLineItemUpdateInput = {};
+  if (input.description !== undefined) data.description = input.description;
+  if (input.quantity !== undefined) data.quantity = input.quantity;
+  if (input.unitPriceCents !== undefined) data.unitPriceCents = input.unitPriceCents;
+
+  const lineItem = await prisma.workOrderLineItem.update({
+    where: { id: existing.id },
+    data,
+    select: {
+      id: true,
+      description: true,
+      quantity: true,
+      unitPriceCents: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return { lineItem };
+}
+
+export async function deleteWorkOrderLineItem(
+  orgId: string,
+  workOrderId: string,
+  lineItemId: string,
+) {
+  await ensureWorkOrder(orgId, workOrderId);
+
+  const result = await prisma.workOrderLineItem.deleteMany({
+    where: { id: lineItemId, orgId, workOrderId },
+  });
+
+  if (result.count === 0) {
+    throw lineItemNotFound();
+  }
+
+  return { deleted: true };
 }

@@ -1,6 +1,8 @@
 import { ErrorResponseSchema, metricsForbiddenResponse } from "../components/errors.js";
 import {
+  DocsHtmlSchema,
   MetricsTextSchema,
+  OpenApiDocumentSchema,
   ReadySchema,
   StatusOkSchema,
   VersionSchema,
@@ -21,6 +23,48 @@ export function registerOperationalPaths(registry: OpenAPIRegistry): void {
       200: {
         description: "Process is healthy.",
         content: { "application/json": { schema: StatusOkSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/openapi.json",
+    summary: "OpenAPI document",
+    description: "Returns the generated OpenAPI JSON document.",
+    tags: [Tags.Operational],
+    operationId: "getOpenApiDocument",
+    responses: {
+      200: {
+        description: "OpenAPI document payload.",
+        content: {
+          "application/json": {
+            schema: OpenApiDocumentSchema,
+          },
+        },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/docs",
+    summary: "Swagger UI",
+    description:
+      "Interactive Swagger UI for the API. This endpoint is exposed only when NODE_ENV is not production.",
+    tags: [Tags.Operational],
+    operationId: "getDocsUi",
+    responses: {
+      200: {
+        description: "Swagger UI HTML page (non-production only).",
+        content: {
+          "text/html": {
+            schema: DocsHtmlSchema,
+          },
+        },
+      },
+      404: {
+        description: "Docs UI disabled in production.",
       },
     },
   });

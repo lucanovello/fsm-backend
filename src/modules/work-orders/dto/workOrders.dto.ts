@@ -52,3 +52,32 @@ export const WorkOrderTaskParamsSchema = z.object({
 });
 
 export type WorkOrderTaskParams = z.infer<typeof WorkOrderTaskParamsSchema>;
+
+export const WorkOrderNoteCreateSchema = z.object({
+  body: z.string().trim().min(1).max(2000),
+});
+
+export type WorkOrderNoteCreateInput = z.infer<typeof WorkOrderNoteCreateSchema>;
+
+export const WorkOrderLineItemCreateSchema = z.object({
+  description: z.string().trim().min(1).max(400),
+  quantity: z.coerce.number().int().min(1).default(1),
+  unitPriceCents: z.coerce.number().int().min(0),
+});
+
+export type WorkOrderLineItemCreateInput = z.infer<typeof WorkOrderLineItemCreateSchema>;
+
+export const WorkOrderLineItemUpdateSchema = z.object({
+  description: z.string().trim().min(1).max(400).optional(),
+  quantity: z.coerce.number().int().min(1).optional(),
+  unitPriceCents: z.coerce.number().int().min(0).optional(),
+});
+
+export type WorkOrderLineItemUpdateInput = z.infer<typeof WorkOrderLineItemUpdateSchema>;
+
+export const WorkOrderLineItemParamsSchema = z.object({
+  id: z.string().min(1),
+  lineItemId: z.string().min(1),
+});
+
+export type WorkOrderLineItemParams = z.infer<typeof WorkOrderLineItemParamsSchema>;

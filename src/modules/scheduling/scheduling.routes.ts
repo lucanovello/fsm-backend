@@ -21,11 +21,22 @@ import {
   RouteStopReorderSchema,
 } from "./dto/routes.dto.js";
 import {
+  BookingStatusCreateSchema,
+  BookingStatusIdParamsSchema,
+  BookingStatusesListQuerySchema,
+  BookingStatusUpdateSchema,
+} from "./dto/statuses.dto.js";
+import {
   addRouteStopHandler,
   createRouteHandler,
   removeRouteStopHandler,
   reorderRouteStopsHandler,
 } from "./routes.controller.js";
+import {
+  createBookingStatusHandler,
+  listBookingStatusesHandler,
+  updateBookingStatusHandler,
+} from "./statuses.controller.js";
 
 export const schedulingRoutes = Router();
 
@@ -65,4 +76,22 @@ schedulingRoutes.delete(
   "/routes/:id/stops/:stopId",
   validateRequest({ params: RouteStopIdParamsSchema }),
   removeRouteStopHandler,
+);
+
+schedulingRoutes.get(
+  "/statuses",
+  validateRequest({ query: BookingStatusesListQuerySchema }),
+  listBookingStatusesHandler,
+);
+
+schedulingRoutes.post(
+  "/statuses",
+  validateRequest({ body: BookingStatusCreateSchema }),
+  createBookingStatusHandler,
+);
+
+schedulingRoutes.patch(
+  "/statuses/:id",
+  validateRequest({ params: BookingStatusIdParamsSchema, body: BookingStatusUpdateSchema }),
+  updateBookingStatusHandler,
 );

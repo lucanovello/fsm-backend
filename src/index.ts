@@ -16,7 +16,9 @@ async function main() {
 
   // Lazy-load app so config validation errors thrown during module init are catchable here.
   const { default: app, disposeSecurity } = await import("./app.js");
+  const { scheduleGeoPingCleanup } = await import("./jobs/geoPingCleanup.js");
   const { scheduleSessionCleanup } = await import("./jobs/sessionCleanup.js");
+  const { scheduleSyncJobWorker } = await import("./jobs/syncJobs.js");
 
   const server = app.listen(port, () => {
     logger.info({ port }, `API server listening at http://localhost:${port}`);
@@ -27,6 +29,19 @@ async function main() {
   server.requestTimeout = cfg.HTTP_SERVER_REQUEST_TIMEOUT_MS;
 
   let stopSessionCleanup = scheduleSessionCleanup({ logger });
+  let stopGeoPingCleanup = scheduleGeoPingCleanup({
+    logger,
+    intervalMs: cfg.geoPingCleanupIntervalMs,
+  });
+  let stopSyncWorker = cfg.syncJobWorker.enabled
+    ? scheduleSyncJobWorker({
+        logger,
+        intervalMs: cfg.syncJobWorker.intervalMs,
+        batchSize: 20,
+        maxAttempts: cfg.syncJobWorker.maxAttempts,
+        retryBaseMs: cfg.syncJobWorker.retryBaseMs,
+      })
+    : () => {};
   let shutdownInitiated = false;
   let forceExitTimer: NodeJS.Timeout | null = null;
   let detachFatalHandlers: () => void = () => {};
@@ -46,6 +61,10 @@ async function main() {
     beginShutdown();
     stopSessionCleanup();
     stopSessionCleanup = () => {};
+    stopGeoPingCleanup();
+    stopGeoPingCleanup = () => {};
+    stopSyncWorker();
+    stopSyncWorker = () => {};
 
     if (options.source === "signal" && options.detail) {
       logger.info({ signal: options.detail }, "Received signal, beginning graceful shutdown");

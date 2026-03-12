@@ -4,6 +4,12 @@ import {
   validationErrorResponse,
 } from "../components/errors.js";
 import {
+  BookingStatusCreateRequestSchema,
+  BookingStatusIdParamsOpenApiSchema,
+  BookingStatusResponseSchema,
+  BookingStatusesListQueryParamsSchema,
+  BookingStatusesResponseSchema,
+  BookingStatusUpdateRequestSchema,
   BookingCreateRequestSchema,
   BookingIdParamsOpenApiSchema,
   BookingResponseSchema,
@@ -45,6 +51,9 @@ import {
   InvoiceStatusUpdateRequestSchema,
   InvoiceWorkOrderIdParamsOpenApiSchema,
   InvoiceWorkOrdersAddRequestSchema,
+  ResourceSkillsParamsOpenApiSchema,
+  ResourceSkillsReplaceRequestSchema,
+  ResourceSkillsResponseSchema,
   RouteCreateRequestSchema,
   RouteIdParamsOpenApiSchema,
   RouteResponseSchema,
@@ -61,12 +70,25 @@ import {
   ServiceContractUpdateRequestSchema,
   ServiceContractsListQueryParamsSchema,
   ServiceContractsListResponseSchema,
+  ServiceLocationCreateRequestSchema,
+  ServiceLocationIdParamsOpenApiSchema,
+  ServiceLocationResponseSchema,
+  ServiceLocationsListQueryParamsSchema,
+  ServiceLocationsListResponseSchema,
+  ServiceLocationUpdateRequestSchema,
   ServiceResourceCreateRequestSchema,
   ServiceResourceIdParamsOpenApiSchema,
   ServiceResourceResponseSchema,
   ServiceResourcesListQueryParamsSchema,
   ServiceResourcesListResponseSchema,
   ServiceResourceUpdateRequestSchema,
+  SkillCreateRequestSchema,
+  SkillDetailResponseSchema,
+  SkillIdParamsOpenApiSchema,
+  SkillResponseSchema,
+  SkillsListQueryParamsSchema,
+  SkillsListResponseSchema,
+  SkillUpdateRequestSchema,
   TechniciansListQueryParamsSchema,
   TechniciansListResponseSchema,
   WorkOrderDetailResponseSchema,
@@ -74,6 +96,14 @@ import {
   WorkOrderIncidentCreateRequestSchema,
   WorkOrderIncidentParamsOpenApiSchema,
   WorkOrderIncidentResponseSchema,
+  WorkOrderLineItemCreateRequestSchema,
+  WorkOrderLineItemParamsOpenApiSchema,
+  WorkOrderLineItemResponseSchema,
+  WorkOrderLineItemsResponseSchema,
+  WorkOrderLineItemUpdateRequestSchema,
+  WorkOrderNoteCreateRequestSchema,
+  WorkOrderNoteResponseSchema,
+  WorkOrderNotesResponseSchema,
   WorkOrderTaskInstantiateRequestSchema,
   WorkOrderTaskParamsOpenApiSchema,
   WorkOrderTaskStatusUpdateRequestSchema,
@@ -149,6 +179,119 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
       },
       400: validationErrorResponse,
       401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/service-locations",
+    summary: "List service locations",
+    description: "Search and paginate service locations, optionally scoped to a customer.",
+    tags: [Tags.ServiceLocations],
+    security: [{ BearerAuth: [] }],
+    request: { query: ServiceLocationsListQueryParamsSchema },
+    responses: {
+      200: {
+        description: "Service location list.",
+        content: { "application/json": { schema: ServiceLocationsListResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/service-locations",
+    summary: "Create service location",
+    description: "Create a service location for a customer in the current org.",
+    tags: [Tags.ServiceLocations],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: {
+        content: { "application/json": { schema: ServiceLocationCreateRequestSchema } },
+      },
+    },
+    responses: {
+      201: {
+        description: "Service location created.",
+        content: { "application/json": { schema: ServiceLocationResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Customer not found", {
+        message: "Customer not found",
+        code: "CUSTOMER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/service-locations/{id}",
+    summary: "Get service location",
+    description: "Fetch service location details.",
+    tags: [Tags.ServiceLocations],
+    security: [{ BearerAuth: [] }],
+    request: { params: ServiceLocationIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Service location found.",
+        content: { "application/json": { schema: ServiceLocationResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service location not found", {
+        message: "Service location not found",
+        code: "SERVICE_LOCATION_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/service-locations/{id}",
+    summary: "Update service location",
+    description: "Update a service location.",
+    tags: [Tags.ServiceLocations],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: ServiceLocationIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: ServiceLocationUpdateRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Service location updated.",
+        content: { "application/json": { schema: ServiceLocationResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service location not found", {
+        message: "Service location not found",
+        code: "SERVICE_LOCATION_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/service-locations/{id}",
+    summary: "Delete service location",
+    description: "Delete a service location.",
+    tags: [Tags.ServiceLocations],
+    security: [{ BearerAuth: [] }],
+    request: { params: ServiceLocationIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Service location deleted.",
+        content: { "application/json": { schema: DeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service location not found", {
+        message: "Service location not found",
+        code: "SERVICE_LOCATION_NOT_FOUND",
+      }),
     },
   });
 
@@ -263,6 +406,172 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
       200: {
         description: "Service resource deleted.",
         content: { "application/json": { schema: DeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service resource not found", {
+        message: "Service resource not found",
+        code: "SERVICE_RESOURCE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/skills",
+    summary: "List skills",
+    description: "Search and paginate the org skill catalog.",
+    tags: [Tags.Skills],
+    security: [{ BearerAuth: [] }],
+    request: { query: SkillsListQueryParamsSchema },
+    responses: {
+      200: {
+        description: "Skill list.",
+        content: { "application/json": { schema: SkillsListResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/skills",
+    summary: "Create skill",
+    description: "Create a new skill in the org catalog.",
+    tags: [Tags.Skills],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: { content: { "application/json": { schema: SkillCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Skill created.",
+        content: { "application/json": { schema: SkillResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      409: errorResponse("Skill name already exists", {
+        message: "Skill name already exists",
+        code: "SKILL_NAME_TAKEN",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/skills/{id}",
+    summary: "Get skill",
+    description: "Fetch a skill and assigned resources.",
+    tags: [Tags.Skills],
+    security: [{ BearerAuth: [] }],
+    request: { params: SkillIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Skill found.",
+        content: { "application/json": { schema: SkillDetailResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Skill not found", {
+        message: "Skill not found",
+        code: "SKILL_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/skills/{id}",
+    summary: "Update skill",
+    description: "Update skill details.",
+    tags: [Tags.Skills],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: SkillIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: SkillUpdateRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Skill updated.",
+        content: { "application/json": { schema: SkillResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Skill not found", {
+        message: "Skill not found",
+        code: "SKILL_NOT_FOUND",
+      }),
+      409: errorResponse("Skill name already exists", {
+        message: "Skill name already exists",
+        code: "SKILL_NAME_TAKEN",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/skills/{id}",
+    summary: "Delete skill",
+    description: "Delete a skill from the org catalog.",
+    tags: [Tags.Skills],
+    security: [{ BearerAuth: [] }],
+    request: { params: SkillIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Skill deleted.",
+        content: { "application/json": { schema: DeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Skill not found", {
+        message: "Skill not found",
+        code: "SKILL_NOT_FOUND",
+      }),
+      409: errorResponse("Skill is in use", {
+        message: "Skill is in use",
+        code: "SKILL_IN_USE",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/service-resources/{id}/skills",
+    summary: "List resource skills",
+    description: "List skills assigned to a service resource.",
+    tags: [Tags.Skills],
+    security: [{ BearerAuth: [] }],
+    request: { params: ResourceSkillsParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Resource skills list.",
+        content: { "application/json": { schema: ResourceSkillsResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Service resource not found", {
+        message: "Service resource not found",
+        code: "SERVICE_RESOURCE_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "put",
+    path: "/api/service-resources/{id}/skills",
+    summary: "Replace resource skills",
+    description: "Replace all skill assignments for a service resource.",
+    tags: [Tags.Skills],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: ResourceSkillsParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: ResourceSkillsReplaceRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Resource skills replaced.",
+        content: { "application/json": { schema: ResourceSkillsResponseSchema } },
       },
       400: validationErrorResponse,
       401: unauthorizedResponse,
@@ -619,6 +928,77 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
 
   registry.registerPath({
     method: "get",
+    path: "/api/scheduling/statuses",
+    summary: "List booking statuses",
+    description: "List booking statuses used by scheduling operations.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: { query: BookingStatusesListQueryParamsSchema },
+    responses: {
+      200: {
+        description: "Booking status list.",
+        content: { "application/json": { schema: BookingStatusesResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/scheduling/statuses",
+    summary: "Create booking status",
+    description: "Create a booking status in the current org.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: {
+      body: { content: { "application/json": { schema: BookingStatusCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Booking status created.",
+        content: { "application/json": { schema: BookingStatusResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      409: errorResponse("Booking status name already exists", {
+        message: "Booking status name already exists",
+        code: "BOOKING_STATUS_NAME_TAKEN",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/scheduling/statuses/{id}",
+    summary: "Update booking status",
+    description: "Update booking status metadata and default flag.",
+    tags: [Tags.Scheduling],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: BookingStatusIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: BookingStatusUpdateRequestSchema } } },
+    },
+    responses: {
+      200: {
+        description: "Booking status updated.",
+        content: { "application/json": { schema: BookingStatusResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Booking status not found", {
+        message: "Booking status not found",
+        code: "BOOKING_STATUS_NOT_FOUND",
+      }),
+      409: errorResponse("Booking status name already exists", {
+        message: "Booking status name already exists",
+        code: "BOOKING_STATUS_NAME_TAKEN",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
     path: "/api/work-orders",
     summary: "List work orders",
     description: "Filter and paginate work orders by date, status, or technician.",
@@ -653,6 +1033,151 @@ export function registerFsmPaths(registry: OpenAPIRegistry): void {
       404: errorResponse("Work order not found", {
         message: "Work order not found",
         code: "WORK_ORDER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/work-orders/{id}/notes",
+    summary: "List work order notes",
+    description: "List notes attached to a work order.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: { params: WorkOrderIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Work order notes list.",
+        content: { "application/json": { schema: WorkOrderNotesResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order not found", {
+        message: "Work order not found",
+        code: "WORK_ORDER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/work-orders/{id}/notes",
+    summary: "Create work order note",
+    description: "Add a note to a work order.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: WorkOrderIdParamsOpenApiSchema,
+      body: { content: { "application/json": { schema: WorkOrderNoteCreateRequestSchema } } },
+    },
+    responses: {
+      201: {
+        description: "Work order note created.",
+        content: { "application/json": { schema: WorkOrderNoteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order not found", {
+        message: "Work order not found",
+        code: "WORK_ORDER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "get",
+    path: "/api/work-orders/{id}/line-items",
+    summary: "List work order line items",
+    description: "List billing line items attached to a work order.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: { params: WorkOrderIdParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Work order line items list.",
+        content: { "application/json": { schema: WorkOrderLineItemsResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order not found", {
+        message: "Work order not found",
+        code: "WORK_ORDER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "post",
+    path: "/api/work-orders/{id}/line-items",
+    summary: "Create work order line item",
+    description: "Add a billing line item to a work order.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: WorkOrderIdParamsOpenApiSchema,
+      body: {
+        content: { "application/json": { schema: WorkOrderLineItemCreateRequestSchema } },
+      },
+    },
+    responses: {
+      201: {
+        description: "Work order line item created.",
+        content: { "application/json": { schema: WorkOrderLineItemResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order not found", {
+        message: "Work order not found",
+        code: "WORK_ORDER_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "patch",
+    path: "/api/work-orders/{id}/line-items/{lineItemId}",
+    summary: "Update work order line item",
+    description: "Update a billing line item on a work order.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: {
+      params: WorkOrderLineItemParamsOpenApiSchema,
+      body: {
+        content: { "application/json": { schema: WorkOrderLineItemUpdateRequestSchema } },
+      },
+    },
+    responses: {
+      200: {
+        description: "Work order line item updated.",
+        content: { "application/json": { schema: WorkOrderLineItemResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order line item not found", {
+        message: "Work order line item not found",
+        code: "WORK_ORDER_LINE_ITEM_NOT_FOUND",
+      }),
+    },
+  });
+
+  registry.registerPath({
+    method: "delete",
+    path: "/api/work-orders/{id}/line-items/{lineItemId}",
+    summary: "Delete work order line item",
+    description: "Delete a billing line item from a work order.",
+    tags: [Tags.WorkOrders],
+    security: [{ BearerAuth: [] }],
+    request: { params: WorkOrderLineItemParamsOpenApiSchema },
+    responses: {
+      200: {
+        description: "Work order line item deleted.",
+        content: { "application/json": { schema: DeleteResponseSchema } },
+      },
+      400: validationErrorResponse,
+      401: unauthorizedResponse,
+      404: errorResponse("Work order line item not found", {
+        message: "Work order line item not found",
+        code: "WORK_ORDER_LINE_ITEM_NOT_FOUND",
       }),
     },
   });
