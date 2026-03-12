@@ -1,58 +1,77 @@
-import "dotenv/config";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 
 const log = (msg) => console.log(`[test-db] ${msg}`);
+const ALLOWED_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
-/**
- * Load .env.test if it exists and TEST_ENV_FILE not already defined.
- * This ensures DATABASE_URL points to the test DB, not dev.
- */
-const testEnvFile = process.env.TEST_ENV_FILE || ".env.test";
-if (fs.existsSync(testEnvFile)) {
-  const dotenv = await import("dotenv");
-  dotenv.config({ path: testEnvFile });
-  log(`Loaded ${testEnvFile}`);
-}
-
-/**
- * Ensure DATABASE_URL points to a test database.
- * If it doesn’t, derive one by appending "_test" to the current DB name.
- */
-let dbUrl = process.env.DATABASE_URL;
-
-if (!dbUrl) {
-  log("❌ DATABASE_URL is not set — cannot proceed.");
-  process.exit(1);
-}
-
-try {
-  const url = new URL(dbUrl);
-  const currentDb = url.pathname.replace(/^\//, "");
-  if (!currentDb.endsWith("_test")) {
-    const testDb = `${currentDb.replace(/[-]+/g, "_")}_test`;
-    url.pathname = `/${testDb}`;
-    dbUrl = url.toString();
-    process.env.DATABASE_URL = dbUrl;
-    log(`Adjusted DATABASE_URL to use test database: ${testDb}`);
-  } else {
-    log(`Using existing test DB name: ${currentDb}`);
+export function assertSafeTestDatabaseUrl(databaseUrl) {
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is not set.");
   }
-} catch (e) {
-  log(`❌ Invalid DATABASE_URL: ${dbUrl}`);
-  console.error(e);
-  process.exit(1);
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(databaseUrl);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`DATABASE_URL is not a valid URL. Value: ${databaseUrl}. Reason: ${reason}`);
+  }
+
+  const databaseName = parsedUrl.pathname.replace(/^\//, "");
+  if (!ALLOWED_HOSTS.has(parsedUrl.hostname)) {
+    throw new Error(
+      `DATABASE_URL host must be localhost/127.0.0.1/::1 for tests. Received: ${parsedUrl.hostname}`,
+    );
+  }
+
+  if (!databaseName.toLowerCase().endsWith("_test")) {
+    throw new Error(`DATABASE_URL database name must end with _test. Received: ${databaseName}`);
+  }
 }
 
-log(`Using DATABASE_URL=${process.env.DATABASE_URL}`);
+function loadTestEnvFile() {
+  const testEnvFile = process.env.TEST_ENV_FILE || ".env.test";
+  if (!fs.existsSync(testEnvFile)) {
+    throw new Error(`Test env file not found: ${testEnvFile}`);
+  }
 
-try {
-  log("Preparing test database using Prisma migrate reset...");
-  execSync("npx prisma migrate reset --force", { stdio: "inherit" });
-  log("✅ Test database is ready.");
-} catch (err) {
-  log("❌ Failed to prepare test database.");
-  console.error(err);
-  process.exit(1);
+  return import("dotenv").then((dotenv) => {
+    dotenv.config({ path: testEnvFile, override: true });
+    log(`Loaded ${testEnvFile}`);
+  });
+}
+
+export async function main() {
+  await loadTestEnvFile();
+
+  const dbUrl = process.env.DATABASE_URL;
+  try {
+    assertSafeTestDatabaseUrl(dbUrl);
+  } catch (error) {
+    log("Refusing to reset database because DATABASE_URL is unsafe.");
+    console.error(error);
+    process.exit(1);
+  }
+
+  log(`Using DATABASE_URL=${process.env.DATABASE_URL}`);
+
+  try {
+    log("Preparing test database using Prisma migrate reset...");
+    execSync("npx prisma migrate reset --force", { stdio: "inherit" });
+    log("Test database is ready.");
+  } catch (err) {
+    log("Failed to prepare test database.");
+    console.error(err);
+    process.exit(1);
+  }
+}
+
+const isDirectRun = process.argv[1]
+  ? import.meta.url === pathToFileURL(process.argv[1]).href
+  : false;
+
+if (isDirectRun) {
+  await main();
 }

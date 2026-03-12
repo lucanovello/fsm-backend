@@ -55,6 +55,7 @@ export const ensureDbReady = async (): Promise<void> => {
  * Adjust this list if you add/remove models.
  */
 export const resetDb = async (): Promise<void> => {
+  await ensureDbReady();
   await prisma.$transaction([
     prisma.syncJob.deleteMany(),
     prisma.externalMapping.deleteMany(),
@@ -83,7 +84,6 @@ export const closeDb = async (): Promise<void> => {
 };
 
 /**
- * Kick off a one-time DB readiness check when this module is imported
- * (similar to the old `run()` pattern, but without extra Prisma constructors).
+ * No import-time side effects: callers should invoke ensureDbReady() explicitly
+ * in setup hooks for DB-dependent suites.
  */
-void ensureDbReady();

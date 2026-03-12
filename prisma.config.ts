@@ -4,6 +4,7 @@ import { env } from "prisma/config";
 import type { PrismaConfig } from "prisma";
 
 export default {
+  engine: "classic",
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
