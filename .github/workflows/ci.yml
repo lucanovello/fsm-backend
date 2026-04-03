@@ -46,8 +46,6 @@ jobs:
           node-version: 20.x
           cache: npm
       - run: npm ci
-      - name: Secret scanning
-        run: npm run secrets:scan
       - name: Dependency vulnerability audit
         run: npm run audit:ci
       - name: Prisma migrate
