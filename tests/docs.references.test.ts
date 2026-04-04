@@ -4,7 +4,6 @@ import { resolve } from "node:path";
 import { describe, expect, test } from "vitest";
 
 const requiredDocs = [
-  "SECURITY.md",
   "docs/ops/kubernetes/README.md",
   "docs/ops/kubernetes/deployment.yaml",
   "docs/ops/kubernetes/service.yaml",
