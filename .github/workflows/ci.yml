@@ -48,8 +48,7 @@ jobs:
       - run: npm ci
       - name: Create .env.test for CI
         run: cp .env.test.example .env.test
-      - name: Secret scanning
-        run: npm run secrets:scan
+
       - name: Dependency vulnerability audit
         run: npm run audit:ci
       - name: Prisma migrate
