@@ -46,8 +46,18 @@ jobs:
           node-version: 20.x
           cache: npm
       - run: npm ci
+      - name: Create .env.test for CI
+        run: cp .env.test.example .env.test
+      - name: Secret scanning
+        run: npm run secrets:scan
       - name: Dependency vulnerability audit
         run: npm run audit:ci
+      - name: Prisma migrate
+        run: npx prisma migrate deploy
+      - name: Static checks (types + lint)
+        run: npm run typecheck && npm run lint
+      - name: Tests (coverage + thresholds)
+        run: npm run test:ci
       - name: Prisma migrate
         run: npx prisma migrate deploy
       - name: Static checks (types + lint)
