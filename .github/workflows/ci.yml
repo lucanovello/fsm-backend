@@ -8,8 +8,13 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -40,8 +45,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
@@ -50,23 +53,19 @@ jobs:
       - name: Create .env.test for CI
         run: cp .env.test.example .env.test
 
+      - name: Quality checks (types + lint + tests)
+        run: npm run check
+      - name: Build app
+        if: github.event_name == 'pull_request'
+        run: npm run build
       - name: Dependency vulnerability audit
+        if: github.event_name == 'push'
         run: npm run audit:ci
-      - name: Prisma migrate
-        run: npx prisma migrate deploy
-      - name: Static checks (types + lint)
-        run: npm run typecheck && npm run lint
-      - name: Tests (coverage + thresholds)
-        run: npm run test:ci
-      - name: Prisma migrate
-        run: npx prisma migrate deploy
-      - name: Static checks (types + lint)
-        run: npm run typecheck && npm run lint
-      - name: Tests (coverage + thresholds)
-        run: npm run test:ci
       - name: Build and generate OpenAPI spec
-        run: npm run build && node scripts/generate-openapi.mjs
+        if: github.event_name == 'push'
+        run: npm run openapi:gen
       - name: Upload OpenAPI spec
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: openapi-spec
@@ -76,6 +75,7 @@ jobs:
   infra-lint:
     name: Infrastructure lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Lint Dockerfile
@@ -90,7 +90,9 @@ jobs:
   container-scan:
     name: Container vulnerability scan
     runs-on: ubuntu-latest
-    needs: test
+    if: github.event_name == 'push'
+    needs: validate
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -98,7 +100,7 @@ jobs:
         run: docker build --build-arg DATABASE_URL=postgresql://postgres:postgres@localhost:5432/fsm_backend_test?schema=public -t fsm-backend:${{ github.sha }} .
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: image
           image-ref: fsm-backend:${{ github.sha }}
